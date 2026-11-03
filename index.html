@@ -291,10 +291,10 @@ function spark(p) {
 document.getElementById("pages").innerHTML = M.pages.map(p => {
   const ph = p.months.filter(x => x.ph); const name = NAMES[p.key] || p.url.split("/").filter(Boolean).pop().replace(/\.html?$/, "").replace(/-/g, " ");
   const flag = ph.length ? `<span class="flag">placeholder from ${fmtM(ph[0].m)}</span>` : "";
-  const url = "https://" + p.url;
+  const url = esc("https://" + p.url);
   const rows = p.months.map((x, i) => { const prev = p.months[i - 1];
-    const diff = prev ? ` · <a href="https://web.archive.org/web/diff/${prev.ts}/${x.ts}/${url}" target="_blank" rel="noopener">diff</a>` : "";
-    return `<div class="${x.ph ? "isph" : ""}"><a href="https://web.archive.org/web/${x.ts}/${url}" target="_blank" rel="noopener">${fmtM(x.m)}</a><span>${x.v} v · ${x.kb ?? "–"} KB${diff}</span></div>` }).join("");
+    const diff = prev ? ` · <a href="https://web.archive.org/web/diff/${esc(prev.ts)}/${esc(x.ts)}/${url}" target="_blank" rel="noopener">diff</a>` : "";
+    return `<div class="${x.ph ? "isph" : ""}"><a href="https://web.archive.org/web/${esc(x.ts)}/${url}" target="_blank" rel="noopener">${fmtM(x.m)}</a><span>${x.v} v · ${x.kb ?? "–"} KB${diff}</span></div>` }).join("");
   return `<details class="prow"><summary><span style="min-width:0"><div class="pname">${esc(name)} ${flag}</div><div class="purl">${esc(p.url)}</div></span>${spark(p)}<span class="pstat">${fmtN(p.versions)} versions<br>peak ${p.peak} KB</span></summary><div class="months">${rows}</div></details>`;
 }).join("");
 
