@@ -18,7 +18,7 @@ Two views, both drawn from Wayback captures:
 
 ## Building
 
-GitHub Pages serves `index.html` and `corpus.js` from the root of `main`.
+GitHub Pages serves `index.html`, `app.js` and `corpus.js` from the root of `main`.
 `corpus.js` is built from the pipeline's outputs, which are not committed:
 
 ```bash

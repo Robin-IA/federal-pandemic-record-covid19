@@ -198,7 +198,7 @@ def main() -> None:
                 languages.update(d["languages"])
                 sink.write(json.dumps(d, ensure_ascii=False) + "\n")
             total += len(docs)
-    print(f"\nlanguages (documents with each): " +
+    print("\nlanguages (documents with each): " +
           ", ".join(f"{lang} {n}" for lang, n in languages.most_common()), file=sys.stderr)
     print(f"wrote {total:,} documents to {args.out.relative_to(root)}", file=sys.stderr)
 
