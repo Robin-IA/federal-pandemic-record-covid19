@@ -18,7 +18,7 @@
   --rule: #d9dfe6;
   --accent: #1d5c8c;
   --accent-soft: #dbe7f1;
-  --event: #a86a12;
+  --event: #965e0f;
   --placeholder: #b13f36;
   --placeholder-soft: #f6dedb;
   --display: "Public Sans", "Helvetica Neue", Arial, sans-serif;
@@ -35,7 +35,7 @@
   --placeholder-soft: #3d2120; color-scheme: dark }
 
 * { box-sizing: border-box }
-html { padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adjust: 100% }
+html { padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adjust: 100%; scroll-padding-top: 56px }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body);
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px }
@@ -63,7 +63,9 @@ section.view { padding-top: 20px }
 .hist .cap { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-bottom: 6px }
 .hist .cap b { color: var(--ink) }
 .bar { fill: var(--accent); cursor: pointer }
-.bar.dim { fill: var(--accent-soft) }
+.bar.sel { stroke: var(--ink); stroke-width: 2 }
+.month-pick { display: flex; align-items: center; gap: 6px }
+.month-pick select { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--muted); border-radius: 4px; padding: 3px 6px; min-height: 28px }
 .bar:hover { fill: var(--ink) }
 .axis { fill: var(--muted); font: 11px var(--mono) }
 .grid { stroke: var(--rule) }
@@ -77,7 +79,8 @@ section.view { padding-top: 20px }
 .facet h3 { font: 600 12px/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px }
 .facet label { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; cursor: pointer; font-size: 14px }
 .facet label span:last-child, .num { font: 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums }
-.search { width: 100%; padding: 10px 12px; font: inherit; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); color: var(--ink) }
+.search { width: 100%; padding: 10px 12px; font: inherit; border: 1px solid var(--muted); border-radius: 6px; background: var(--surface); color: var(--ink) }
+.search-label { display: block; margin-bottom: 8px }
 .status { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin: 12px 0 6px }
 .chip-clear { border: 0; background: none; color: var(--accent); font: inherit; cursor: pointer; padding: 0 }
 
@@ -141,16 +144,18 @@ code { font: 13px var(--mono); background: var(--accent-soft); padding: 1px 4px;
     <a href="#about" data-v="about">About</a>
   </nav>
 
+  <main id="main">
   <section class="view" id="v-documents">
     <div class="hist">
-      <div class="cap"><span><b id="h-total">0</b> documents by month first captured. Click a month to filter.</span><span>◆ events: draft dates, not yet verified</span></div>
+      <div class="cap"><span><b id="h-total">0</b> documents by month first captured. Choose or click a month to filter.</span><label class="month-pick">Month <select id="month"></select></label><span>◆ events: draft dates, not yet verified</span></div>
       <svg id="hist" viewBox="0 0 1000 230" role="img" aria-label="Documents per month"></svg>
     </div>
     <div class="controls">
       <aside class="facets" id="facets"></aside>
       <div style="min-width:0">
-        <input id="q" class="search" type="search" placeholder="Search titles: masks, schools, quarantine…" aria-label="Search titles">
-        <div class="status"><span id="count"></span><button class="chip-clear" id="clear" hidden>Clear filters</button></div>
+        <label for="q" class="eyebrow search-label">Search titles</label>
+        <input id="q" class="search" type="search" placeholder="masks, schools, quarantine…">
+        <div class="status"><span id="count" role="status"></span><button class="chip-clear" id="clear" hidden>Clear filters</button></div>
         <ol class="docs" id="docs"></ol>
         <button class="more" id="more" hidden>Show more</button>
       </div>
@@ -190,6 +195,7 @@ code { font: 13px var(--mono); background: var(--accent-soft); padding: 1px 4px;
       <li>Event markers on the chart are draft dates, not yet verified.</li>
     </ul>
   </section>
+  </main>
 </div>
 
 <script src="corpus.js"></script>
@@ -237,7 +243,7 @@ function renderHist() {
   for (let v = 0; v <= top; v += nice) s += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
   counts.forEach((c, i) => {
     const m = MONTHS[i], x = L + i * bw + 1;
-    s += `<rect class="bar${st.month && st.month !== m ? " dim" : ""}" data-m="${m}" x="${x}" y="${y(c)}" width="${bw - 2}" height="${B - y(c)}"><title>${fmtM(m)}: ${c}</title></rect>`;
+    s += `<rect class="bar${st.month === m ? " sel" : ""}" data-m="${m}" x="${x}" y="${y(c)}" width="${bw - 2}" height="${B - y(c)}"><title>${fmtM(m)}: ${c}</title></rect>`;
     if (m.endsWith("-01") || i === 0) s += `<text class="axis" x="${x}" y="${B + 16}">${m.endsWith("-01") ? m.slice(0, 4) : "Dec"}</text>`;
   });
   const seen = {};
@@ -249,6 +255,10 @@ function renderHist() {
   const svg = document.getElementById("hist"); svg.innerHTML = s;
   svg.querySelectorAll(".bar").forEach(b => b.onclick = () => { st.month = st.month === b.dataset.m ? null : b.dataset.m; st.shown = 60; render() });
   document.getElementById("h-total").textContent = fmtN(counts.reduce((a, b) => a + b, 0));
+  // The same filter as the bars, for the keyboard and as the chart's data in text.
+  const pick = document.getElementById("month");
+  pick.innerHTML = `<option value="">All months</option>` + MONTHS.map((m, i) => `<option value="${m}">${fmtM(m)} (${fmtN(counts[i])})</option>`).join("");
+  pick.value = st.month || "";
 }
 function renderDocs() {
   const rows = D.filter(d => match(d));
@@ -267,11 +277,13 @@ function render() { renderFacets(); renderHist(); renderDocs() }
 document.getElementById("facets").addEventListener("change", e => {
   const k = e.target.dataset.k; if (!k) return;
   if (k === "translated") st.translated = e.target.checked; else e.target.checked ? st[k].add(e.target.value) : st[k].delete(e.target.value);
-  st.shown = 60; render();
+  // render() rebuilds the facets, so put focus back on the same checkbox.
+  const id = e.target.id; st.shown = 60; render(); document.getElementById(id)?.focus();
 });
+document.getElementById("month").addEventListener("change", e => { st.month = e.target.value || null; st.shown = 60; render() });
 document.getElementById("q").addEventListener("input", e => { st.q = e.target.value.trim().toLowerCase(); st.shown = 60; render() });
 document.getElementById("more").onclick = () => { st.shown += 100; renderDocs() };
-document.getElementById("clear").onclick = () => { st.agency.clear(); st.type.clear(); st.translated = false; st.month = null; st.q = ""; document.getElementById("q").value = ""; render() };
+document.getElementById("clear").onclick = () => { st.agency.clear(); st.type.clear(); st.translated = false; st.month = null; st.q = ""; const q = document.getElementById("q"); q.value = ""; q.focus(); render() };
 
 /* ---- pages over time ---- */
 const NAMES = { cdc_home: "CDC COVID-19 home", cdc_masks: "Cloth face coverings", cdc_masks2: "About face coverings", cdc_spread: "How COVID spreads",
@@ -294,7 +306,7 @@ document.getElementById("pages").innerHTML = M.pages.map(p => {
   const url = esc("https://" + p.url);
   const rows = p.months.map((x, i) => { const prev = p.months[i - 1];
     const diff = prev ? ` · <a href="https://web.archive.org/web/diff/${esc(prev.ts)}/${esc(x.ts)}/${url}" target="_blank" rel="noopener">diff</a>` : "";
-    return `<div class="${x.ph ? "isph" : ""}"><a href="https://web.archive.org/web/${esc(x.ts)}/${url}" target="_blank" rel="noopener">${fmtM(x.m)}</a><span>${x.v} v · ${x.kb ?? "–"} KB${diff}</span></div>` }).join("");
+    return `<div class="${x.ph ? "isph" : ""}"><a href="https://web.archive.org/web/${esc(x.ts)}/${url}" target="_blank" rel="noopener">${fmtM(x.m)}</a><span>${x.v} v · ${x.kb ?? "–"} KB${x.ph ? " · placeholder" : ""}${diff}</span></div>` }).join("");
   return `<details class="prow"><summary><span style="min-width:0"><div class="pname">${esc(name)} ${flag}</div><div class="purl">${esc(p.url)}</div></span>${spark(p)}<span class="pstat">${fmtN(p.versions)} versions<br>peak ${p.peak} KB</span></summary><div class="months">${rows}</div></details>`;
 }).join("");
 
