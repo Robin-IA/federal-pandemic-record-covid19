@@ -1,11 +1,11 @@
 # Security and accessibility checks
 
-**Status: passing.** All three checks passed on 2026-11-03 at commit `e7e736a489`. Nothing is open. Advisory items below are optional.
+**Status: passing.** All three checks passed on 2026-11-03 at commit `d6f6aa6ec1`. Nothing is open. Advisory items below are optional.
 
 | | |
 |---|---|
 | Explorer | https://github.com/internetarchivecanada/federal-pandemic-record-covid19 |
-| Commit | `e7e736a489` on `explorer-checks` |
+| Commit | `d6f6aa6ec1` on `explorer-checks` |
 | Date | 2026-11-03 |
 | Pages checked | `./`, `./#pages`, `./#archive`, `./#about` |
 | Served from | repository root, served locally |
@@ -25,7 +25,7 @@
 
 ## Standards met
 
-Checked 3 November 2026 at commit `e7e736a489`, on the pages listed above:
+Checked 3 November 2026 at commit `d6f6aa6ec1`, on the pages listed above:
 
 - **WCAG 2.2 Level AA**: every Level A and AA success criterion, by automated tests and a manual review of each criterion (checklists under each check below).
 - **WCAG 2.1 Level AA** and **WCAG 2.0 Level AA**, which WCAG 2.2 includes. 4.1.1 Parsing, dropped from 2.2 but still in 2.0 and 2.1, is covered by the code validity check (no HTML parse errors, no duplicate ids).
@@ -124,4 +124,4 @@ Optional. These items never block a pass.
 |---|---|---|---|---|
 | `S-1baacc` | security | No x-content-type-options header | `https://internetarchivecanada.github.io/federal-pandemic-record-covid19/` | Set it; it stops browsers guessing content types. It has no <meta> form, so on a host that cannot set headers (GitHub Pages) it stays open; the explorer's owners decide whether that matters enough to change host. |
 
-<!-- explorer-checks:state {"passing": true, "date": "2026-11-03", "commit": "e7e736a48931b0ce0093c5567b5a8f65425a37f0", "open": [], "titles": {}} -->
+<!-- explorer-checks:state {"passing": true, "date": "2026-11-03", "commit": "d6f6aa6ec14a71deebbf015d476c46e220a22553", "open": [], "titles": {}} -->
