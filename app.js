@@ -35,22 +35,41 @@ function renderFacets() {
   document.getElementById("facets").innerHTML = facet("Agency", "agency", d => d.agency) + facet("Document type", "type", typeOf) +
     `<div class="facet"><h2>Languages</h2><label><span><input type="checkbox" id="f-tr" data-k="translated" ${st.translated ? "checked" : ""}> Has translations</span><span>${fmtN(tr)}</span></label></div>`;
 }
+// Rows of event labels above the bars. Five: the events from Dec 2020 to Jul 2021
+// are close enough that each label needs its own row to keep the marker lines clear.
+const EV_ROWS = 5;
+const labelWidth = (() => { const c = document.createElement("canvas").getContext("2d");
+  return t => { c.font = `600 10px ${getComputedStyle(document.body).fontFamily}`; return c.measureText(t).width } })();
 function renderHist() {
   const counts = MONTHS.map(m => D.filter(d => d.month === m && match(d, "month")).length);
-  const max = Math.max(1, ...counts), W = 1000, L = 40, R = 10, T = 54, B = 200, bw = (W - L - R) / MONTHS.length;
+  const max = Math.max(1, ...counts), W = 1000, L = 40, R = 10, T = 14 + EV_ROWS * 13, B = T + 146, bw = (W - L - R) / MONTHS.length;
   const nice = max > 200 ? 100 : max > 50 ? 25 : max > 20 ? 10 : 5, top = Math.ceil(max / nice) * nice, y = v => B - (v / top) * (B - T);
   let s = "";
   for (let v = 0; v <= top; v += nice) s += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
   counts.forEach((c, i) => {
     const m = MONTHS[i], x = L + i * bw + 1;
     s += `<rect class="bar${st.month === m ? " sel" : ""}" data-m="${m}" x="${x}" y="${y(c)}" width="${bw - 2}" height="${B - y(c)}"><title>${fmtM(m)}: ${c}</title></rect>`;
-    if (m.endsWith("-01") || i === 0) s += `<text class="axis" x="${x}" y="${B + 16}">${m.endsWith("-01") ? m.slice(0, 4) : "Dec"}</text>`;
+    // Years at each January only. Dec 2019 had a "Dec" label, which read as "Dec 2020" beside the 2020.
+    if (m.endsWith("-01")) s += `<text class="axis" x="${x}" y="${B + 16}">${m.slice(0, 4)}</text>`;
   });
-  const seen = {};
+  // Each event label takes the first row, and side of its marker, where its text
+  // clears the other labels and no event's marker line runs through it. Widths
+  // are measured in the label font.
+  const placed = [];
   EVENTS.forEach(([m, label]) => {
-    const i = MONTHS.indexOf(m); if (i < 0) return; const n = seen[m] = (seen[m] || 0) + 1;
-    const x = L + i * bw + bw / 2, ly = 12 + ((Object.keys(seen).length - 1) % 3) * 13 + (n - 1) * 13;
-    s += `<g class="ev"><line x1="${x}" x2="${x}" y1="${ly + 3}" y2="${B}"/><circle cx="${x}" cy="${ly}" r="3"/><text x="${x + 5}" y="${ly + 3.5}"${i > MONTHS.length - 8 ? ` text-anchor="end" dx="-10"` : ""}>${esc(label)}</text></g>`;
+    const i = MONTHS.indexOf(m); if (i < 0) return;
+    const x = L + i * bw + bw / 2, w = labelWidth(label);
+    const clashes = (r, a, b) => placed.filter(p => p.r === r ? p.a < b + 6 && a < p.b + 6
+      : p.r < r ? p.x > a - 4 && p.x < b + 4 : x > p.a - 4 && x < p.b + 4).length;
+    const options = [];
+    for (let r = 0; r < EV_ROWS; r++) for (const left of [false, true]) {
+      const a = left ? x - 5 - w : x + 5, b = left ? x - 5 : x + 5 + w;
+      if (a >= 0 && b <= W) options.push({ r, left, a, b, n: clashes(r, a, b) });
+    }
+    const o = options.find(o => !o.n) || options.reduce((p, q) => q.n < p.n ? q : p);
+    placed.push({ r: o.r, a: o.a, b: o.b, x });
+    const ly = 12 + o.r * 13;
+    s += `<g class="ev"><line x1="${x}" x2="${x}" y1="${ly + 3}" y2="${B}"/><circle cx="${x}" cy="${ly}" r="3"/><text x="${o.left ? x - 5 : x + 5}" y="${ly + 3.5}"${o.left ? ` text-anchor="end"` : ""}>${esc(label)}</text></g>`;
   });
   const svg = document.getElementById("hist"); svg.innerHTML = s;
   svg.querySelectorAll(".bar").forEach(b => b.onclick = () => { st.month = st.month === b.dataset.m ? null : b.dataset.m; st.shown = 60; render() });
@@ -133,4 +152,5 @@ function show(v) { if (!VIEWS.includes(v)) v = "documents";
   document.querySelectorAll("nav.tabs a").forEach(a => a.dataset.v === v ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")) }
 document.querySelectorAll("nav.tabs a").forEach(a => a.onclick = e => { e.preventDefault(); show(a.dataset.v); try { history.replaceState(null, "", "#" + a.dataset.v) } catch (_) {} });
 render(); show(location.hash.slice(1));
+document.fonts?.ready.then(renderHist);  // label widths change once Public Sans loads
 })();
