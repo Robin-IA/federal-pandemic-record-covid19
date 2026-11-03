@@ -110,6 +110,19 @@ No open items.
 
 </details>
 
+## Fixed since the last run
+
+- `A-1a6195` Chart event labels are below 4.5:1 in light mode
+- `A-24aaff` Month filter works only by clicking small chart bars
+- `A-2bd7a3` Search box border and dimmed chart bars are too faint
+- `A-3fc18c` No main landmark
+- `A-411875` Sticky tab bar can cover the focused link entirely
+- `A-6c8b81` Placeholder months are marked by colour alone
+- `A-af8ffa` Search box has no visible label
+- `A-b4d27c` Result count changes are not announced
+- `A-fdd24c` Filtering throws keyboard focus to the top of the page
+- `S-cd5758` String rendered as markup or code (innerHTML)
+
 ## Advisory (5)
 
 Optional. These items never block a pass.
@@ -122,4 +135,4 @@ Optional. These items never block a pass.
 | `A-ee8d84` | accessibility | Heading levels should only increase by one | `/ heading-order` | Ensure the order of headings is semantically correct See https://dequeuniversity.com/rules/axe/4.10/heading-order?application=axeAPI |
 | `A-f08e07` | accessibility | Aside should not be contained in another landmark | `/ landmark-complementary-is-top-level` | Ensure the complementary landmark or aside is at top level See https://dequeuniversity.com/rules/axe/4.10/landmark-complementary-is-top-level?application=axeAPI |
 
-<!-- explorer-checks:state {"passing": true, "date": "2026-11-03", "commit": "d5b4c417e3f9853540df32bf6381c990c89fd684", "open": []} -->
+<!-- explorer-checks:state {"passing": true, "date": "2026-11-03", "commit": "d5b4c417e3f9853540df32bf6381c990c89fd684", "open": [], "titles": {}} -->
