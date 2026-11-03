@@ -28,12 +28,12 @@ function match(d, skip) {
 function facet(title, key, values) {
   const counts = {}; D.forEach(d => { if (match(d, key)) counts[values(d)] = (counts[values(d)] || 0) + 1 });
   const all = [...new Set(D.map(values))].sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
-  return `<div class="facet"><h3>${title}</h3>${all.map(v => `<label><span><input type="checkbox" id="f-${key}-${esc(v).replace(/\W/g, "")}" data-k="${key}" value="${esc(v)}" ${st[key].has(v) ? "checked" : ""}> ${esc(v)}</span><span>${fmtN(counts[v] || 0)}</span></label>`).join("")}</div>`;
+  return `<div class="facet"><h2>${title}</h2>${all.map(v => `<label><span><input type="checkbox" id="f-${key}-${esc(v).replace(/\W/g, "")}" data-k="${key}" value="${esc(v)}" ${st[key].has(v) ? "checked" : ""}> ${esc(v)}</span><span>${fmtN(counts[v] || 0)}</span></label>`).join("")}</div>`;
 }
 function renderFacets() {
   const tr = D.filter(d => match(d, "translated") && d.langs.length).length;
   document.getElementById("facets").innerHTML = facet("Agency", "agency", d => d.agency) + facet("Document type", "type", typeOf) +
-    `<div class="facet"><h3>Languages</h3><label><span><input type="checkbox" id="f-tr" data-k="translated" ${st.translated ? "checked" : ""}> Has translations</span><span>${fmtN(tr)}</span></label></div>`;
+    `<div class="facet"><h2>Languages</h2><label><span><input type="checkbox" id="f-tr" data-k="translated" ${st.translated ? "checked" : ""}> Has translations</span><span>${fmtN(tr)}</span></label></div>`;
 }
 function renderHist() {
   const counts = MONTHS.map(m => D.filter(d => d.month === m && match(d, "month")).length);
@@ -122,7 +122,7 @@ const CARDS = [
   ["COVID-19 Apps", "COVID-19_Apps", "Archived apps, including CDC's own.", 257],
   ["U.S. Government Documents matching coronavirus or covid", "USGovernmentDocuments", "Keyword match inside the collection. Not yet read item by item.", 98],
   ["State Executive Actions Related to the COVID-19 Pandemic", "ArchiveIt-Collection-15784", "States rather than federal. A companion collection, linked but not in the corpus."]];
-document.getElementById("cards").innerHTML = CARDS.map(([t, id, note, n]) => `<div class="card">${n ? `<div class="big">${fmtN(n)}<span class="num"> items</span></div>` : ""}<h3><a href="https://archive.org/details/${id}" target="_blank" rel="noopener">${esc(t)}</a></h3><div class="id">${id}</div><p>${note}</p></div>`).join("");
+document.getElementById("cards").innerHTML = CARDS.map(([t, id, note, n]) => `<div class="card">${n ? `<div class="big">${fmtN(n)}<span class="num"> items</span></div>` : ""}<h2><a href="https://archive.org/details/${id}" target="_blank" rel="noopener">${esc(t)}</a></h2><div class="id">${id}</div><p>${note}</p></div>`).join("");
 document.getElementById("ab-cdc").textContent = `${fmtN(M.stats.cdc_files)} CDC files fold into ${fmtN(M.stats.cdc_docs)} documents.`;
 document.getElementById("stamp").textContent = `${fmtN(D.length)} documents · Wayback index read ${M.stats.harvested}`;
 
