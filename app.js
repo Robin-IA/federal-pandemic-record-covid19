@@ -32,8 +32,11 @@ function facet(title, key, values) {
 }
 function renderFacets() {
   const tr = D.filter(d => match(d, "translated") && d.langs.length).length;
-  document.getElementById("facets").innerHTML = facet("Agency", "agency", d => d.agency) + facet("Document type", "type", typeOf) +
+  const html = facet("Agency", "agency", d => d.agency) + facet("Document type", "type", typeOf) +
     `<div class="facet"><h2>Languages</h2><label><span><input type="checkbox" id="f-tr" data-k="translated" ${st.translated ? "checked" : ""}> Has translations</span><span>${fmtN(tr)}</span></label></div>`;
+  // The same filters on the Overview and beside the list; ids differ so each copy can take focus back.
+  document.getElementById("facets").innerHTML = html;
+  document.getElementById("facets-b").innerHTML = html.replaceAll('id="f-', 'id="b-f-');
 }
 // Rows of event labels above the bars. Five: the events from Dec 2020 to Jul 2021
 // are close enough that each label needs its own row to keep the marker lines clear.
@@ -82,8 +85,10 @@ function renderHist() {
 function renderDocs() {
   const rows = D.filter(d => match(d));
   const filt = st.agency.size || st.type.size || st.translated || st.month || st.q;
-  document.getElementById("count").textContent = `${fmtN(rows.length)} of ${fmtN(D.length)} documents${st.month ? ` · ${fmtM(st.month)}` : ""}`;
-  document.getElementById("clear").hidden = !filt;
+  const count = `${fmtN(rows.length)} of ${fmtN(D.length)} documents${st.month ? ` · ${fmtM(st.month)}` : ""}`;
+  ["count", "count-b"].forEach(id => document.getElementById(id).textContent = count);
+  ["clear", "clear-b"].forEach(id => document.getElementById(id).hidden = !filt);
+  document.getElementById("browse").textContent = filt ? `Browse these ${fmtN(rows.length)} documents` : `Browse all ${fmtN(rows.length)} documents`;
   document.getElementById("docs").innerHTML = rows.slice(0, st.shown).map(d => {
     const when = d.day ? new Date(d.day + "T12:00").toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" }) : `by ${fmtM(d.month)}`;
     const langs = d.langs.length ? `<span class="langs" title="${esc(d.langs.join(", "))}">+${d.langs.length} language${d.langs.length > 1 ? "s" : ""}</span>` : "";
@@ -93,16 +98,19 @@ function renderDocs() {
   more.textContent = `Show more (${fmtN(rows.length - st.shown)} left)`;
 }
 function render() { renderFacets(); renderHist(); renderDocs() }
-document.getElementById("facets").addEventListener("change", e => {
+const onFacet = e => {
   const k = e.target.dataset.k; if (!k) return;
   if (k === "translated") st.translated = e.target.checked; else e.target.checked ? st[k].add(e.target.value) : st[k].delete(e.target.value);
   // render() rebuilds the facets, so put focus back on the same checkbox.
   const id = e.target.id; st.shown = 60; render(); document.getElementById(id)?.focus();
-});
+};
+["facets", "facets-b"].forEach(id => document.getElementById(id).addEventListener("change", onFacet));
 document.getElementById("month").addEventListener("change", e => { st.month = e.target.value || null; st.shown = 60; render() });
-document.getElementById("q").addEventListener("input", e => { st.q = e.target.value.trim().toLowerCase(); st.shown = 60; render() });
+// Two search boxes, one query: typing in either updates the other.
+const QS = ["q", "q-b"].map(id => document.getElementById(id));
+QS.forEach(q => q.addEventListener("input", e => { st.q = e.target.value.trim().toLowerCase(); QS.forEach(o => { if (o !== e.target) o.value = e.target.value }); st.shown = 60; render() }));
 document.getElementById("more").onclick = () => { st.shown += 100; renderDocs() };
-document.getElementById("clear").onclick = () => { st.agency.clear(); st.type.clear(); st.translated = false; st.month = null; st.q = ""; const q = document.getElementById("q"); q.value = ""; q.focus(); render() };
+["clear", "clear-b"].forEach((id, i) => document.getElementById(id).onclick = () => { st.agency.clear(); st.type.clear(); st.translated = false; st.month = null; st.q = ""; QS.forEach(q => q.value = ""); QS[i].focus(); render() });
 
 /* ---- pages over time ---- */
 const NAMES = { cdc_home: "CDC COVID-19 home", cdc_masks: "Cloth face coverings", cdc_masks2: "About face coverings", cdc_spread: "How COVID spreads",
@@ -154,11 +162,13 @@ document.getElementById("ab-cdc").textContent = `${fmtN(M.stats.cdc_files)} CDC 
 document.getElementById("stamp").textContent = `${fmtN(D.length)} documents · Wayback index read ${M.stats.harvested}`;
 
 /* ---- views ---- */
-const VIEWS = ["documents", "pages", "archive", "about"];
-function show(v) { if (!VIEWS.includes(v)) v = "documents";
+const VIEWS = ["overview", "documents", "pages", "archive", "about"];
+function show(v) { if (!VIEWS.includes(v)) v = "overview";
   VIEWS.forEach(x => document.getElementById("v-" + x).hidden = x !== v);
   document.querySelectorAll("nav.tabs a").forEach(a => a.dataset.v === v ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")) }
-document.querySelectorAll("nav.tabs a").forEach(a => a.onclick = e => { e.preventDefault(); show(a.dataset.v); try { history.replaceState(null, "", "#" + a.dataset.v) } catch (_) {} });
+const go = v => { show(v); try { history.replaceState(null, "", "#" + v) } catch (_) {} };
+document.querySelectorAll("nav.tabs a").forEach(a => a.onclick = e => { e.preventDefault(); go(a.dataset.v) });
+document.getElementById("browse").onclick = e => { e.preventDefault(); go("documents"); document.getElementById("q-b").focus() };
 render(); show(location.hash.slice(1));
 document.fonts?.ready.then(renderHist);  // label widths change once Public Sans loads
 })();

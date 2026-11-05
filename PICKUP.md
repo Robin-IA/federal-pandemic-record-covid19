@@ -319,10 +319,12 @@ tests/
 
 Prototype explorer, in this order:
 
-1. **Documents.** Month histogram Dec 2019–May 2023 with event markers. Facets
-   for agency, topic, document type and "translated". Search over titles. Each
-   row shows its date ("by Mar 2020"), agency, title from the slug, languages,
-   and a Wayback link.
+1. **Overview.** Month histogram Dec 2019–May 2023 with event markers, the
+   facets (agency, document type, "translated") and title search, and a button
+   to browse the matching documents.
+1. **Browse the Documents.** The same facets and search, shared with the
+   Overview, beside the list. Each row shows its date ("by Mar 2020"), agency,
+   title from the slug, languages, and a Wayback link.
 2. **Pages over time.** One row per key page: a sparkline of versions per
    month, a size line, placeholder months marked, and a link to the successor
    page. Expanding a row shows monthly snapshot links plus diff and compare
