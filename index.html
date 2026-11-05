@@ -96,6 +96,11 @@ section.view { padding-top: 20px }
 .ev line { stroke: var(--event); stroke-dasharray: 2 3 }
 .ev circle { fill: var(--event) }
 .ev text { fill: var(--event); font: 600 10px var(--body) }
+.events { margin-top: 6px; font-size: 13px }
+.events summary { cursor: pointer; color: var(--muted); font-weight: 600 }
+.events ol { margin: 8px 0 4px; padding-left: 1.4em; columns: 2 300px; column-gap: 28px }
+.events li { break-inside: avoid; margin-bottom: 4px }
+.events time { font: 12px var(--mono); color: var(--muted); margin-right: 4px }
 
 .controls { display: grid; grid-template-columns: 220px 1fr; gap: 20px; margin-top: 20px }
 @media (max-width: 760px) { .controls { grid-template-columns: 1fr } }
@@ -230,8 +235,9 @@ code { font: 13px var(--mono); background: var(--accent-soft); padding: 1px 4px;
   <main id="main">
   <section class="view" id="v-overview">
     <div class="hist">
-      <div class="cap"><span><b id="h-total">0</b> documents, by the month they were first saved. Click a bar or pick a month to see that month.</span><label class="month-pick">Month <select id="month"></select></label><span>◆ events (dates still being checked)</span></div>
+      <div class="cap"><span><b id="h-total">0</b> documents, by the month they were first saved. Click a bar or pick a month to see that month.</span><label class="month-pick">Month <select id="month"></select></label><span>◆ events, listed below the chart</span></div>
       <svg id="hist" viewBox="0 0 1000 255" role="img" aria-label="Documents per month"></svg>
+      <details class="events"><summary>Events on the chart, with their sources</summary><ol id="events"></ol></details>
     </div>
     <div class="controls">
       <div class="facets" id="facets" role="group" aria-label="Filters"></div>
