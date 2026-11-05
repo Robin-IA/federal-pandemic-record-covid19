@@ -62,8 +62,8 @@ header.mast { margin-top: 16px; padding: 28px 32px 24px; border-radius: 10px; ba
    inside the band, and kept clear of the text so it never changes a
    contrast ratio. */
 header.mast > :not(.mast-art) { position: relative }
-.mast-art { position: absolute; right: 32px; top: 50%; transform: translateY(-50%); width: 200px; height: 200px;
-  color: var(--mast-art); opacity: .6; pointer-events: none }
+.mast-art { position: absolute; right: 28px; top: 50%; transform: translateY(-50%); width: 210px; height: auto;
+  pointer-events: none }
 .mast-art .dot, .mark .dot { fill: currentColor; stroke: none }
 @media (max-width: 1000px) { .mast-art { display: none } }
 .mark { width: 18px; height: 18px; vertical-align: -5px; margin-right: 6px; color: var(--mast-art) }
@@ -123,6 +123,40 @@ ol.docs li { display: grid; grid-template-columns: 92px 1fr auto; gap: 4px 14px;
 .ttl a:hover { text-decoration: underline; color: var(--accent) }
 .meta { grid-column: 2 / 4; display: flex; gap: 6px; flex-wrap: wrap; font-size: 12px; color: var(--muted) }
 .ag { font: 600 11px/1 var(--body); letter-spacing: .04em; padding: 4px 6px; border-radius: 3px; background: var(--accent-soft); color: var(--accent); white-space: nowrap }
+/* Each agency has its own tag colour; every pair is at least 4.5:1. */
+.ag[data-ag="CDC"] { background: #dbeafe; color: #1e40af }
+.ag[data-ag="White House (Trump)"] { background: #fde2e2; color: #9b1c1c }
+.ag[data-ag="White House (Biden)"] { background: #e0e7ff; color: #3730a3 }
+.ag[data-ag="NIH"] { background: #d1fae5; color: #065f46 }
+.ag[data-ag="ED"] { background: #fef3c7; color: #92400e }
+.ag[data-ag="HHS"] { background: #ede9fe; color: #5b21b6 }
+.ag[data-ag="HHS (ASPR)"] { background: #fce7f3; color: #9d174d }
+.ag[data-ag="DHS"] { background: #e0f2fe; color: #075985 }
+.ag[data-ag="CISA"] { background: #ccfbf1; color: #115e59 }
+@media (prefers-color-scheme: dark) {
+:root:not([data-theme="light"]) .ag[data-ag="CDC"] { background: #1e3352; color: #bcd6fb }
+:root:not([data-theme="light"]) .ag[data-ag="White House (Trump)"] { background: #4a1f22; color: #fbc4c4 }
+:root:not([data-theme="light"]) .ag[data-ag="White House (Biden)"] { background: #2a2c55; color: #c9d1fd }
+:root:not([data-theme="light"]) .ag[data-ag="NIH"] { background: #123c30; color: #a7ecc9 }
+:root:not([data-theme="light"]) .ag[data-ag="ED"] { background: #43331a; color: #f8d98f }
+:root:not([data-theme="light"]) .ag[data-ag="HHS"] { background: #33284f; color: #d8cdfb }
+:root:not([data-theme="light"]) .ag[data-ag="HHS (ASPR)"] { background: #4a2236; color: #f6c2dc }
+:root:not([data-theme="light"]) .ag[data-ag="DHS"] { background: #173a4f; color: #b6e0f8 }
+:root:not([data-theme="light"]) .ag[data-ag="CISA"] { background: #143d3a; color: #a5ebdd }
+}
+:root[data-theme="dark"] .ag[data-ag="CDC"] { background: #1e3352; color: #bcd6fb }
+:root[data-theme="dark"] .ag[data-ag="White House (Trump)"] { background: #4a1f22; color: #fbc4c4 }
+:root[data-theme="dark"] .ag[data-ag="White House (Biden)"] { background: #2a2c55; color: #c9d1fd }
+:root[data-theme="dark"] .ag[data-ag="NIH"] { background: #123c30; color: #a7ecc9 }
+:root[data-theme="dark"] .ag[data-ag="ED"] { background: #43331a; color: #f8d98f }
+:root[data-theme="dark"] .ag[data-ag="HHS"] { background: #33284f; color: #d8cdfb }
+:root[data-theme="dark"] .ag[data-ag="HHS (ASPR)"] { background: #4a2236; color: #f6c2dc }
+:root[data-theme="dark"] .ag[data-ag="DHS"] { background: #173a4f; color: #b6e0f8 }
+:root[data-theme="dark"] .ag[data-ag="CISA"] { background: #143d3a; color: #a5ebdd }
+.about-fig { float: right; width: min(42%, 360px); margin: 0 0 16px 24px }
+.about-fig img { display: block; width: 100%; height: auto; border-radius: 8px }
+.about-fig figcaption { font-size: 12px; color: var(--muted); margin-top: 6px }
+@media (max-width: 640px) { .about-fig { float: none; width: auto; margin: 0 0 16px } }
 .langs { cursor: help; border-bottom: 1px dotted var(--muted) }
 .more { margin: 16px auto 0; display: block; padding: 10px 18px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); font: 600 14px var(--body); border-radius: 6px; cursor: pointer }
 @media (max-width: 520px) { ol.docs li { grid-template-columns: 1fr } .meta { grid-column: 1 } ol.docs li > .when { order: -1 } }
@@ -209,7 +243,7 @@ code { font: 13px var(--mono); background: var(--accent-soft); padding: 1px 4px;
         <circle cx="103.6" cy="107.1" r="3.5" class="dot"/>
       </g></symbol>
     </svg>
-    <svg class="mast-art" aria-hidden="true" focusable="false"><use href="#virion"/></svg>
+    <img class="mast-art" src="img/sars-cov-2-cdc.webp" width="418" height="420" alt="">
     <div class="eyebrow"><svg class="mark" aria-hidden="true" focusable="false"><use href="#virion"/></svg>Internet Archive · Democracy's Library</div>
     <h1>The Federal Pandemic Record</h1>
     <p class="lede">See what the U.S. government said about COVID-19 on its own websites, from <b>December 2019</b> until the public health emergency ended on <b>May 11, 2023</b>. The Wayback Machine saved these pages. Related collections from Democracy's Library are here too.</p>
@@ -280,6 +314,10 @@ code { font: 13px var(--mono); background: var(--accent-soft); padding: 1px 4px;
   </section>
 
   <section class="view prose" id="v-about" hidden>
+    <figure class="about-fig">
+      <img src="img/sars-cov-2-niaid.webp" width="720" height="562" alt="Colored microscope image of round SARS-CoV-2 virus particles, shown in orange and gold on a dark background.">
+      <figcaption>SARS-CoV-2, the virus that causes COVID-19, seen through a microscope and colored. Image: <a href="https://commons.wikimedia.org/wiki/File:Novel_Coronavirus_SARS-CoV-2.jpg">NIAID-RML</a>, <a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a>.</figcaption>
+    </figure>
     <h2>What will you find here?</h2>
     <p>The Federal Pandemic Record gathers COVID-19 documents that U.S. government agencies, like the CDC and the White House, put on their websites. The Wayback Machine saved copies of those pages. Each link opens a saved document, such as a fact sheet, a PDF or an executive order. The site also shows COVID-19 items from Democracy's Library, an Internet Archive curated collection of government resources.</p>
     <h2>How documents are dated</h2>
