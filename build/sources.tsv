@@ -21,6 +21,7 @@ hhs-coronavirus	HHS	www.hhs.gov/sites/default/files/coronavirus	prefix	statuscod
 dhs-covid	DHS	www.dhs.gov/sites/default/files/publications/covid	prefix	statuscode:200	yes	all	partial	15 rows
 cisa-covid	CISA	www.cisa.gov/sites/default/files/publications/covid	prefix	statuscode:200	yes	all	partial	6 rows	essential-workforce guidance PDFs are not named covid*; see cisa.gov/identifying-critical-infrastructure-during-covid-19
 phe	HHS (ASPR)	www.phe.gov/emergency/news/healthactions/phe/	prefix	statuscode:200	yes	all	retry		failed twice on the network in the survey
+phe-aspr	HHS (ASPR)	aspr.hhs.gov/legal/PHE/Pages/	prefix	statuscode:200	yes	all	harvested		phe.gov moved here in 2022; renewals from January 2022 on (#17)
 wh-uploads-trump	White House (Trump)	trumpwhitehouse.archives.gov/wp-content/uploads/	prefix	mimetype:application/pdf	no	keywords	queued		whitehouse.gov prefixes answer 503; try the mirror
 wh-uploads-biden	White House (Biden)	bidenwhitehouse.archives.gov/wp-content/uploads/	prefix	mimetype:application/pdf	no	keywords	queued
 cdc-ncov	CDC	www.cdc.gov/coronavirus/2019-ncov/	paged	mimetype:application/pdf	yes	all	queued	1767 pages	about 16 hours; run from a terminal under caffeinate -i

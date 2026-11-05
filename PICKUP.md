@@ -186,7 +186,8 @@ never as a day, unless a date is in the URL or the document.
 | WH-B | Biden presidential actions | `bidenwhitehouse.archives.gov/briefing-room/presidential-actions/` | **Harvested:** 1,183 actions, 44 COVID by slug, **42 in range**. Date is in the URL (`/2021/01/21/`). Link to `www.whitehouse.gov/...` at that date. |
 | WH | White House PDFs (`wp-content/uploads/2020…2023/`) | | **Blocked** by the whitehouse.gov prefix 503. Try the archives.gov mirrors' `wp-content/uploads/`. |
 | HHS | `www.hhs.gov/sites/default/files/` | | Partial: `covid*` = 97 rows. Other prefixes 503. Needs paging (425 pages). |
-| PHE | PHE declarations | `www.phe.gov/emergency/news/healthactions/phe/` | Failed twice (network). Small; retry. |
+| PHE | PHE declarations | `www.phe.gov/emergency/news/healthactions/phe/` | Harvested 5 Nov 2026: 215 rows, 115 kept. Declarations to October 2021. `covid19-7April2021` is the opioid crisis renewal, despite its name; left out. |
+| PHE | PHE declarations after the move | `aspr.hhs.gov/legal/PHE/Pages/` | Harvested 5 Nov 2026: 102 rows, 55 kept. phe.gov moved here in 2022 and re-hosted the earlier pages; renewals from January 2022 to February 2023 are only here. The build keeps each declaration once, from its first capture: 14 in all (the determination and 13 renewals). |
 | DHS | `www.dhs.gov/sites/default/files/publications/` | | Partial: `covid*` = 15 |
 | CISA | `www.cisa.gov/sites/default/files/publications/` | | Partial: `covid*` = 6. The essential critical infrastructure workforce guidance PDFs are not named `covid*`; look at `cisa.gov/identifying-critical-infrastructure-during-covid-19` for their URLs. |
 | FEMA, CMS, OSHA, Treasury, SBA, DOL, USDA, VA | see `build/sources.tsv` to write | | Queued, not finished when the browser dropped |
