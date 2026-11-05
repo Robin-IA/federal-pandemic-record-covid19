@@ -12,7 +12,9 @@ What goes in follows the corpus rule: every document opens as a document.
     capture of their www.whitehouse.gov address from dates.py, and only those
     inside the period; Biden items carry their day in the URL.
   - PHE: only the COVID declarations. The same folder holds every emergency
-    since 2010 (hurricanes, opioids, Zika).
+    since 2010 (hurricanes, opioids, Zika). phe.gov moved to aspr.hhs.gov in
+    2022, which re-hosted the earlier declarations, so each declaration is
+    kept once, from whichever address was captured first.
 
 Each Wayback link points at the capture the date came from, so the link
 replays the document as it stood when it was first seen.
@@ -40,7 +42,14 @@ FILE_TYPES = {
     "application/vnd.ms-excel": "Excel",
 }
 ISSUANCE_SOURCES = {"wht-actions", "wht-briefings", "whb-actions"}
-PHE_COVID = re.compile(r"/pages/[^/]*(covid|covdi|ncov)[^/]*\.aspx$")
+# A declaration or renewal: covid19-21apr2020, covdi-15oct21, 2019-ncov. Not
+# "letter-to-governors-on-the-covid-19-response", in the same folder.
+PHE_COVID = re.compile(r"/pages/(covid|covdi|2019-ncov)[^/]*\.aspx$")
+PHE_SOURCES = {"phe", "phe-aspr"}
+# Named like a COVID renewal but not one: covid19-7april2021 renews the opioid
+# crisis emergency (read on its 7 April 2021 capture). The COVID renewal that
+# month is covid-15april2021.
+PHE_NOT_COVID = {"covid19-7april2021.aspx"}
 
 ACTION_TYPES = [("executive-order", "Executive order"), ("proclamation", "Proclamation"),
                 ("memorandum", "Memorandum"), ("determination", "Determination"),
@@ -107,8 +116,8 @@ def entry(d: dict, dates: dict[str, dict]) -> dict | None:
             return None
         return base | {"type": kind(slug, ACTION_TYPES, "Presidential action"), "month": month(day),
                        "day": f"{day[:4]}-{day[4:6]}-{day[6:]}", "url": wayback(d["timestamp"], d["original"])}
-    if source == "phe":
-        if not PHE_COVID.search(d["key"]) or not in_period(d["timestamp"]):
+    if source in PHE_SOURCES:
+        if not PHE_COVID.search(d["key"]) or slug in PHE_NOT_COVID or not in_period(d["timestamp"]):
             return None
         return base | {"title": phe_title(slug), "type": "PHE declaration", "month": month(d["timestamp"]),
                        "url": wayback(d["timestamp"], d["original"])}
@@ -135,6 +144,18 @@ def pages(path: Path) -> list[dict]:
     return out
 
 
+def one_per_declaration(docs: list[dict]) -> list[dict]:
+    """Each PHE declaration once: the copy with the earliest capture."""
+    first: dict[str, dict] = {}
+    for d in docs:
+        if d["type"] == "PHE declaration":
+            seen = first.get(d["title"])
+            # Wayback links differ first at the timestamp, so they sort by capture time.
+            if seen is None or d["url"] < seen["url"]:
+                first[d["title"]] = d
+    return [d for d in docs if d["type"] != "PHE declaration" or first[d["title"]] is d]
+
+
 def main() -> None:
     documents = [json.loads(line) for line in (ROOT / "data" / "documents.jsonl").read_text().splitlines()]
     dates = {json.loads(line)["key"]: json.loads(line)
@@ -147,6 +168,7 @@ def main() -> None:
             docs.append(e)
         else:
             left_out[d["source"]] += 1
+    docs = one_per_declaration(docs)
     docs.sort(key=lambda d: (d["month"], d["agency"], d["title"]))
 
     fetched = max(json.loads(p.read_text())["fetched"] for p in (ROOT / "data" / "cdx-cache").glob("*.json"))
