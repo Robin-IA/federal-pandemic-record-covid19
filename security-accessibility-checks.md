@@ -1,11 +1,11 @@
 # Security and accessibility checks
 
-**Status: passing.** All three checks passed on 2026-11-05 at commit `35fc132053`. Nothing is open. Advisory items below are optional.
+**Status: passing.** All three checks passed on 2026-11-05 at commit `fa253cb46e`. Nothing is open. Advisory items below are optional.
 
 | | |
 |---|---|
 | Explorer | https://github.com/internetarchivecanada/federal-pandemic-record-covid19 |
-| Commit | `35fc132053` on `plain-language` |
+| Commit | `fa253cb46e` on `images-and-colour` |
 | Date | 2026-11-05 |
 | Pages checked | `./`, `./#documents`, `./#pages`, `./#archive`, `./#about` |
 | Served from | repository root, served locally |
@@ -26,7 +26,7 @@
 
 ## Standards met
 
-Checked 5 November 2026 at commit `35fc132053`, on the pages listed above:
+Checked 5 November 2026 at commit `fa253cb46e`, on the pages listed above:
 
 - **WCAG 2.2 Level AA**: every Level A and AA success criterion, by automated tests and a manual review of each criterion (checklists under each check below).
 - **WCAG 2.1 Level AA** and **WCAG 2.0 Level AA**, which WCAG 2.2 includes. 4.1.1 Parsing, dropped from 2.2 but still in 2.0 and 2.1, is covered by the code validity check (no HTML parse errors, no duplicate ids).
@@ -130,4 +130,4 @@ Optional. These items never block a pass.
 | `S-36c938` | security | Page contacts a third party: fonts.googleapis.com | `/` | ASVS V3 | Every visitor's IP address and the page they are on go to this host. Serve the file from the explorer itself (fonts and libraries can be vendored), or keep it and say so in the review. |
 | `S-21f485` | security | Page contacts a third party: fonts.gstatic.com | `/` | ASVS V3 | Every visitor's IP address and the page they are on go to this host. Serve the file from the explorer itself (fonts and libraries can be vendored), or keep it and say so in the review. |
 
-<!-- explorer-checks:state {"passing": true, "date": "2026-11-05", "commit": "35fc13205333829df4bbb2cb58a3bd583c4a8453", "open": [], "titles": {}} -->
+<!-- explorer-checks:state {"passing": true, "date": "2026-11-05", "commit": "fa253cb46ebddb8bef962b5ca986c8789bf1940c", "open": [], "titles": {}} -->
