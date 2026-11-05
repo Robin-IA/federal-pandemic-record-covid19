@@ -158,7 +158,6 @@ const CARDS = [
 const card = ([t, id, note, n, q]) => `<div class="card">${n ? `<div class="big">${fmtN(n)}<span class="num"> items</span></div>` : ""}<h3><a href="${q ? search(q) : `https://archive.org/details/${id}`}" target="_blank" rel="noopener">${esc(t)}</a></h3><div class="id">${id}</div><p>${note}</p></div>`;
 document.getElementById("cards-dl").innerHTML = DL_CARDS.map(card).join("");
 document.getElementById("cards").innerHTML = CARDS.map(card).join("");
-document.getElementById("ab-cdc").textContent = `That turns ${fmtN(M.stats.cdc_files)} CDC files into ${fmtN(M.stats.cdc_docs)} listings.`;
 document.getElementById("stamp").textContent = `${fmtN(D.length)} documents · Wayback Machine searched ${M.stats.harvested}`;
 
 /* ---- views ---- */
