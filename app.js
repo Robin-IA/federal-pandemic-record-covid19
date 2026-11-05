@@ -6,12 +6,23 @@ const MONTHS = []; for (let y = 2019, m = 12; y < 2023 || (y === 2023 && m <= 5)
 const MN = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const fmtM = m => `${MN[+m.slice(5) - 1]} ${m.slice(0, 4)}`;
 const fmtN = n => n.toLocaleString("en-US");
+// Month on the chart, label, checked date, agency, and the archived federal page that
+// states the date (issue #35).
 const EVENTS = [
-  ["2020-01", "Health emergency declared"], ["2020-03", "National emergency"], ["2020-03", "CARES Act"],
-  ["2020-04", "Cloth face coverings"], ["2020-12", "First vaccine approved"], ["2021-01", "Biden COVID plan"],
-  ["2021-03", "American Rescue Plan"], ["2021-05", "Masks off if vaccinated"], ["2021-07", "Masks back indoors"],
-  ["2021-12", "Isolation shortened"], ["2022-01", "COVIDtests.gov opens"], ["2022-08", "New CDC advice"],
-  ["2023-04", "National emergency ends"], ["2023-05", "Health emergency ends"]];
+  ["2020-01", "Health emergency declared", "2020-01-31", "HHS", "https://web.archive.org/web/20200201011714/https://www.phe.gov/emergency/news/healthactions/phe/Pages/2019-nCoV.aspx"],
+  ["2020-03", "National emergency", "2020-03-13", "White House", "https://web.archive.org/web/20200313234554/https://www.whitehouse.gov/presidential-actions/proclamation-declaring-national-emergency-concerning-novel-coronavirus-disease-covid-19-outbreak/"],
+  ["2020-03", "CARES Act", "2020-03-27", "White House", "https://web.archive.org/web/20200327223027/https://www.whitehouse.gov/briefings-statements/remarks-president-trump-signing-h-r-748-cares-act/"],
+  ["2020-04", "Cloth face coverings", "2020-04-03", "CDC", "https://web.archive.org/web/20200403221424/https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/cloth-face-cover.html"],
+  ["2020-12", "First vaccine approved", "2020-12-11", "FDA", "https://web.archive.org/web/20201212024036/https://www.fda.gov/news-events/press-announcements/fda-takes-key-action-fight-against-covid-19-issuing-emergency-use-authorization-first-covid-19"],
+  ["2021-01", "Biden COVID plan", "2021-01-21", "White House", "https://web.archive.org/web/20210121195701/https://www.whitehouse.gov/wp-content/uploads/2021/01/National-Strategy-for-the-COVID-19-Response-and-Pandemic-Preparedness.pdf"],
+  ["2021-03", "American Rescue Plan", "2021-03-11", "White House", "https://web.archive.org/web/20210311200044/https://www.whitehouse.gov/briefing-room/legislation/2021/03/11/bill-signing-h-r-1319/"],
+  ["2021-05", "Masks off if vaccinated", "2021-05-13", "CDC", "https://web.archive.org/web/20210514142355/https://www.cdc.gov/coronavirus/2019-ncov/vaccines/fully-vaccinated-guidance.html"],
+  ["2021-07", "Masks back indoors", "2021-07-27", "CDC", "https://web.archive.org/web/20210727195203/https://www.cdc.gov/coronavirus/2019-ncov/vaccines/fully-vaccinated-guidance.html"],
+  ["2021-12", "Isolation shortened", "2021-12-27", "CDC", "https://web.archive.org/web/20211227214551/https://www.cdc.gov/media/releases/2021/s1227-isolation-quarantine-guidance.html"],
+  ["2022-01", "COVIDtests.gov opens", "2022-01-18", "White House", "https://web.archive.org/web/20220119041020/https://www.covidtests.gov/"],
+  ["2022-08", "New CDC advice", "2022-08-11", "CDC", "https://web.archive.org/web/20220811200901/https://www.cdc.gov/media/releases/2022/p0811-covid-guidance.html"],
+  ["2023-04", "National emergency ends", "2023-04-10", "White House", "https://web.archive.org/web/20230410221548/https://www.whitehouse.gov/briefing-room/legislation/2023/04/10/bill-signed-h-j-res-7/"],
+  ["2023-05", "Health emergency ends", "2023-05-11", "HHS", "https://web.archive.org/web/20230510005337/https://www.hhs.gov/about/news/2023/05/09/fact-sheet-end-of-the-covid-19-public-health-emergency.html"]];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
 /* ---- documents ---- */
@@ -111,6 +122,16 @@ const QS = ["q", "q-b"].map(id => document.getElementById(id));
 QS.forEach(q => q.addEventListener("input", e => { st.q = e.target.value.trim().toLowerCase(); QS.forEach(o => { if (o !== e.target) o.value = e.target.value }); st.shown = 60; render() }));
 document.getElementById("more").onclick = () => { st.shown += 100; renderDocs() };
 ["clear", "clear-b"].forEach((id, i) => document.getElementById(id).onclick = () => { st.agency.clear(); st.type.clear(); st.translated = false; st.month = null; st.q = ""; QS.forEach(q => q.value = ""); QS[i].focus(); render() });
+
+// The events as a list: their dates and sources, and the chart's events in text.
+const evList = document.getElementById("events");
+EVENTS.forEach(([, label, day, agency, src]) => {
+  const li = document.createElement("li"), when = document.createElement("time"), a = document.createElement("a");
+  when.dateTime = day;
+  when.textContent = new Date(day + "T12:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  a.href = src; a.textContent = label;
+  li.append(when, " ", a, ` (${agency})`); evList.append(li);
+});
 
 /* ---- pages over time ---- */
 const NAMES = { cdc_home: "CDC COVID-19 home", cdc_masks: "Cloth face coverings", cdc_masks2: "About face coverings", cdc_spread: "How COVID spreads",
