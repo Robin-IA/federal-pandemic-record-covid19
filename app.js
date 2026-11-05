@@ -92,7 +92,7 @@ function renderDocs() {
   document.getElementById("docs").innerHTML = rows.slice(0, st.shown).map(d => {
     const when = d.day ? new Date(d.day + "T12:00").toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" }) : `by ${fmtM(d.month)}`;
     const langs = d.langs.length ? `<span class="langs" title="${esc(d.langs.join(", "))}">+${d.langs.length} language${d.langs.length > 1 ? "s" : ""}</span>` : "";
-    return `<li><span class="when">${when}</span><span class="ttl"><a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.title)}</a></span><span class="ag">${esc(d.agency)}</span><span class="meta"><span>${esc(d.type)}</span>${langs ? "·" + langs : ""}</span></li>`;
+    return `<li><span class="when">${when}</span><span class="ttl"><a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.title)}</a></span><span class="ag" data-ag="${esc(d.agency)}">${esc(d.agency)}</span><span class="meta"><span>${esc(d.type)}</span>${langs ? "·" + langs : ""}</span></li>`;
   }).join("");
   const more = document.getElementById("more"); more.hidden = rows.length <= st.shown;
   more.textContent = `Show more (${fmtN(rows.length - st.shown)} left)`;

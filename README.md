@@ -55,3 +55,10 @@ build time.
 
 Built by Robin Fay, Project Manager, Digital Collections, Democracy's
 Library.
+
+Images: the SARS-CoV-2 illustration in the header is by Alissa Eckert and Dan
+Higgins at the CDC ([public domain](https://commons.wikimedia.org/wiki/File:SARS-CoV-2_without_background.png)).
+The microscope image on the About page is by NIAID-RML
+([CC BY 2.0](https://commons.wikimedia.org/wiki/File:Novel_Coronavirus_SARS-CoV-2.jpg)).
+Both are resized copies in `img/`, because the page loads images only from
+itself.
