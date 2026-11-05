@@ -7,11 +7,11 @@ const MN = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","D
 const fmtM = m => `${MN[+m.slice(5) - 1]} ${m.slice(0, 4)}`;
 const fmtN = n => n.toLocaleString("en-US");
 const EVENTS = [
-  ["2020-01", "PHE declared"], ["2020-03", "National emergency"], ["2020-03", "CARES Act"],
-  ["2020-04", "Cloth face coverings"], ["2020-12", "First vaccine EUA"], ["2021-01", "Biden national strategy"],
+  ["2020-01", "Health emergency declared"], ["2020-03", "National emergency"], ["2020-03", "CARES Act"],
+  ["2020-04", "Cloth face coverings"], ["2020-12", "First vaccine approved"], ["2021-01", "Biden COVID plan"],
   ["2021-03", "American Rescue Plan"], ["2021-05", "Masks off if vaccinated"], ["2021-07", "Masks back indoors"],
-  ["2021-12", "Isolation shortened"], ["2022-01", "COVIDtests.gov opens"], ["2022-08", "Streamlined guidance"],
-  ["2023-04", "National emergency ends"], ["2023-05", "PHE ends"]];
+  ["2021-12", "Isolation shortened"], ["2022-01", "COVIDtests.gov opens"], ["2022-08", "New CDC advice"],
+  ["2023-04", "National emergency ends"], ["2023-05", "Health emergency ends"]];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
 /* ---- documents ---- */
@@ -129,12 +129,12 @@ function spark(p) {
 }
 document.getElementById("pages").innerHTML = M.pages.map(p => {
   const ph = p.months.filter(x => x.ph); const name = NAMES[p.key] || p.url.split("/").filter(Boolean).pop().replace(/\.html?$/, "").replace(/-/g, " ");
-  const flag = ph.length ? `<span class="flag">placeholder from ${fmtM(ph[0].m)}</span>` : "";
+  const flag = ph.length ? `<span class="flag">moved in ${fmtM(ph[0].m)}</span>` : "";
   const url = esc("https://" + p.url);
   const rows = p.months.map((x, i) => { const prev = p.months[i - 1];
     const diff = prev ? ` · <a href="https://web.archive.org/web/diff/${esc(prev.ts)}/${esc(x.ts)}/${url}" target="_blank" rel="noopener">diff</a>` : "";
-    return `<div class="${x.ph ? "isph" : ""}"><a href="https://web.archive.org/web/${esc(x.ts)}/${url}" target="_blank" rel="noopener">${fmtM(x.m)}</a><span>${x.v} v · ${x.kb ?? "–"} KB${x.ph ? " · placeholder" : ""}${diff}</span></div>` }).join("");
-  return `<details class="prow"><summary><span style="min-width:0"><div class="pname">${esc(name)} ${flag}</div><div class="purl">${esc(p.url)}</div></span>${spark(p)}<span class="pstat">${fmtN(p.versions)} versions<br>peak ${p.peak} KB</span></summary><div class="months">${rows}</div></details>`;
+    return `<div class="${x.ph ? "isph" : ""}"><a href="https://web.archive.org/web/${esc(x.ts)}/${url}" target="_blank" rel="noopener">${fmtM(x.m)}</a><span>${x.v} changes · ${x.kb ?? "–"} KB${x.ph ? " · moved" : ""}${diff}</span></div>` }).join("");
+  return `<details class="prow"><summary><span style="min-width:0"><div class="pname">${esc(name)} ${flag}</div><div class="purl">${esc(p.url)}</div></span>${spark(p)}<span class="pstat">${fmtN(p.versions)} changes<br>largest ${p.peak} KB</span></summary><div class="months">${rows}</div></details>`;
 }).join("");
 
 /* ---- Democracy's Library and archive.org ---- */
@@ -142,24 +142,24 @@ document.getElementById("pages").innerHTML = M.pages.map(p => {
 const COVID_Q = '(covid OR "covid-19" OR covid19 OR coronavirus OR "sars-cov-2")';
 const search = q => "https://archive.org/search?query=" + encodeURIComponent(q);
 const DL_CARDS = [
-  ["U.S. Agency for Global Media: COVID-19 reports", "usagm", "Voice of America and Radio Free Asia videos, such as reports on zero-COVID protests in China. In the library by its tag.", 228, `collection:usagm AND collection:democracys-library AND ${COVID_Q}`],
-  ["US Government Documents: COVID-19", "USGovernmentDocuments", "98 of the 99 are federal court dockets, such as COVID-19 court-operations orders and test-kit seizures. In the library by its scope.", 99, `collection:USGovernmentDocuments AND ${COVID_Q}`],
-  ["FEDLINK: COVID-19", "fedlink", "Naval Postgraduate School theses, on PPE supply chains and public health among others. Some only mention the pandemic. In the library by its scope.", 6, `collection:fedlink AND ${COVID_Q}`]];
+  ["U.S. Agency for Global Media: COVID-19 reports", "usagm", "Videos from Voice of America and Radio Free Asia, such as reports on COVID protests in China.", 228, `collection:usagm AND collection:democracys-library AND ${COVID_Q}`],
+  ["US Government Documents: COVID-19", "USGovernmentDocuments", "Almost all are federal court records, such as court orders about working during COVID-19 and cases about fake test kits.", 99, `collection:USGovernmentDocuments AND ${COVID_Q}`],
+  ["FEDLINK: COVID-19", "fedlink", "Research papers from the Naval Postgraduate School, on topics like supplies of masks and gloves. Some only mention the pandemic.", 6, `collection:fedlink AND ${COVID_Q}`]];
 const CARDS = [
-  ["Coronavirus (COVID-19)", "ArchiveIt-Collection-13721", "Archive-It, from the Federal Depository Library Program Web Archive (partner 593)."],
-  ["COVID.gov", "ArchiveIt-Collection-19129", "Archive-It, FDLP Web Archive."],
-  ["COVIDtests.gov", "ArchiveIt-Collection-18608", "Archive-It."],
-  ["David J. Sencer CDC Museum COVID-19 Collection Web Archive", "ArchiveIt-Collection-16018", "The CDC museum's own web archive."],
-  ["David J. Sencer CDC Museum COVID-19 Timeline Links", "ArchiveIt-Collection-20471", "The museum's timeline. A candidate backbone for the events track."],
-  ["White House Coronavirus Task Force briefings", "TV-CSPAN", "C-SPAN recordings in the TV News Archive, titled “Coronavirus Task Force”.", 145],
-  ["CDC YouTube channel", "cdc-youtube-channel", "All of CDC's videos, not only the COVID ones. A topic filter is still to do.", 6664],
-  ["COVID-19 Apps", "COVID-19_Apps", "Archived apps, including CDC's own.", 257],
-  ["State Executive Actions Related to the COVID-19 Pandemic", "ArchiveIt-Collection-15784", "States rather than federal. A companion collection, linked but not in the corpus."]];
+  ["Coronavirus (COVID-19)", "ArchiveIt-Collection-13721", "Government COVID-19 websites saved by the Federal Depository Library Program."],
+  ["COVID.gov", "ArchiveIt-Collection-19129", "The COVID.gov website, saved by the Federal Depository Library Program."],
+  ["COVIDtests.gov", "ArchiveIt-Collection-18608", "The website for ordering free COVID-19 tests."],
+  ["David J. Sencer CDC Museum COVID-19 Collection Web Archive", "ArchiveIt-Collection-16018", "Websites saved by the CDC's own museum."],
+  ["David J. Sencer CDC Museum COVID-19 Timeline Links", "ArchiveIt-Collection-20471", "The CDC museum's timeline of the pandemic."],
+  ["White House Coronavirus Task Force briefings", "TV-CSPAN", "C-SPAN recordings of the White House task force briefings.", 145],
+  ["CDC YouTube channel", "cdc-youtube-channel", "All of the CDC's videos, not only the COVID-19 ones.", 6664],
+  ["COVID-19 Apps", "COVID-19_Apps", "Saved phone apps, including the CDC's own.", 257],
+  ["State Executive Actions Related to the COVID-19 Pandemic", "ArchiveIt-Collection-15784", "What U.S. states did about COVID-19. Not part of this site's federal documents."]];
 const card = ([t, id, note, n, q]) => `<div class="card">${n ? `<div class="big">${fmtN(n)}<span class="num"> items</span></div>` : ""}<h3><a href="${q ? search(q) : `https://archive.org/details/${id}`}" target="_blank" rel="noopener">${esc(t)}</a></h3><div class="id">${id}</div><p>${note}</p></div>`;
 document.getElementById("cards-dl").innerHTML = DL_CARDS.map(card).join("");
 document.getElementById("cards").innerHTML = CARDS.map(card).join("");
-document.getElementById("ab-cdc").textContent = `${fmtN(M.stats.cdc_files)} CDC files fold into ${fmtN(M.stats.cdc_docs)} documents.`;
-document.getElementById("stamp").textContent = `${fmtN(D.length)} documents · Wayback index read ${M.stats.harvested}`;
+document.getElementById("ab-cdc").textContent = `That turns ${fmtN(M.stats.cdc_files)} CDC files into ${fmtN(M.stats.cdc_docs)} listings.`;
+document.getElementById("stamp").textContent = `${fmtN(D.length)} documents · Wayback Machine searched ${M.stats.harvested}`;
 
 /* ---- views ---- */
 const VIEWS = ["overview", "documents", "pages", "archive", "about"];
