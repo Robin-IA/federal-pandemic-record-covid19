@@ -329,7 +329,7 @@ Prototype explorer, in this order:
    month, a size line, placeholder months marked, and a link to the successor
    page. Expanding a row shows monthly snapshot links plus diff and compare
    links.
-3. **Democracy's Library.** COVID-19 material in the library's own
+3. **Democracy's Library Collections.** COVID-19 material in the library's own
    collections (U.S. Agency for Global Media by tag; US Government Documents
    and FEDLINK by scope), then the collections above under "Elsewhere on
    archive.org", with counts derived from search.
