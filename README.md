@@ -50,3 +50,8 @@ The pipeline is laid out in PICKUP.md. It follows
 [Letters from Congress](https://github.com/internetarchivecanada/congressional-letters):
 one static page, a small index, and every number derived from the data at
 build time.
+
+## Credits
+
+Built by Robin Fay, Project Manager, Digital Collections, Democracy's
+Library.
