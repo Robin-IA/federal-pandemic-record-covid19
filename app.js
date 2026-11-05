@@ -32,11 +32,11 @@ function facet(title, key, values) {
 }
 function renderFacets() {
   const tr = D.filter(d => match(d, "translated") && d.langs.length).length;
-  const html = facet("Agency", "agency", d => d.agency) + facet("Document type", "type", typeOf) +
-    `<div class="facet"><h2>Languages</h2><label><span><input type="checkbox" id="f-tr" data-k="translated" ${st.translated ? "checked" : ""}> Has translations</span><span>${fmtN(tr)}</span></label></div>`;
-  // The same filters on the Overview and beside the list; ids differ so each copy can take focus back.
-  document.getElementById("facets").innerHTML = html;
-  document.getElementById("facets-b").innerHTML = html.replaceAll('id="f-', 'id="b-f-');
+  const agency = facet("Agency", "agency", d => d.agency), type = facet("Document type", "type", typeOf),
+    langs = `<div class="facet"><h2>Languages</h2><label><span><input type="checkbox" id="f-tr" data-k="translated" ${st.translated ? "checked" : ""}> Has translations</span><span>${fmtN(tr)}</span></label></div>`;
+  // The Overview leaves out Document type; the list has every filter. Ids differ so each copy can take focus back.
+  document.getElementById("facets").innerHTML = agency + langs;
+  document.getElementById("facets-b").innerHTML = (agency + type + langs).replaceAll('id="f-', 'id="b-f-');
 }
 // Rows of event labels above the bars. Five: the events from Dec 2020 to Jul 2021
 // are close enough that each label needs its own row to keep the marker lines clear.
