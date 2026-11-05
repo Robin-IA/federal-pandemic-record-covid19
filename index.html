@@ -3,6 +3,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <title>The Federal Pandemic Record</title>
 <meta name="description" content="COVID-19 as the U.S. federal government told it on its own websites, December 2019 to May 2023, preserved by the Wayback Machine.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,7 +45,15 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(-
 a { color: var(--accent) }
 a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
 
-header.mast { padding-block: 28px 8px }
+header.mast { padding-block: 28px 8px; position: relative; overflow: clip }
+/* The virus outline is decoration: hidden from assistive technology, and
+   kept clear of the text so it never changes a contrast ratio. */
+header.mast > :not(.mast-art) { position: relative }
+.mast-art { position: absolute; right: -24px; top: 4px; width: 230px; height: 230px; color: var(--accent);
+  opacity: .16; pointer-events: none }
+.mast-art .dot, .mark .dot { fill: currentColor; stroke: none }
+@media (max-width: 1000px) { .mast-art { display: none } }
+.mark { width: 18px; height: 18px; vertical-align: -5px; margin-right: 6px; color: var(--accent) }
 .eyebrow { font: 600 12px/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
 h1 { font: 800 clamp(28px, 5vw, 44px)/1.05 var(--display); margin: 8px 0 10px; letter-spacing: -.01em; text-wrap: balance }
 .lede { max-width: 64ch; color: var(--muted); margin: 0 }
@@ -132,7 +141,53 @@ code { font: 13px var(--mono); background: var(--accent-soft); padding: 1px 4px;
 
 <div class="wrap">
   <header class="mast">
-    <div class="eyebrow">Internet Archive · Democracy's Library</div>
+    <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+      <symbol id="virion" viewBox="0 0 200 200"><g fill="none" stroke="currentColor" stroke-width="3">
+        <circle cx="100" cy="100" r="58"/>
+        <path d="M157.6 106.9L179.4 109.6"/>
+        <circle cx="185.4" cy="110.3" r="6"/>
+        <path d="M150.5 128.5L169.7 139.2"/>
+        <circle cx="174.9" cy="142.2" r="6"/>
+        <path d="M135.8 145.6L149.4 162.9"/>
+        <circle cx="153.1" cy="167.7" r="6"/>
+        <path d="M115.6 155.9L121.5 177"/>
+        <circle cx="123.2" cy="182.8" r="6"/>
+        <path d="M93.1 157.6L90.4 179.4"/>
+        <circle cx="89.7" cy="185.4" r="6"/>
+        <path d="M71.5 150.5L60.8 169.7"/>
+        <circle cx="57.8" cy="174.9" r="6"/>
+        <path d="M54.4 135.8L37.1 149.4"/>
+        <circle cx="32.3" cy="153.1" r="6"/>
+        <path d="M44.1 115.6L23 121.5"/>
+        <circle cx="17.2" cy="123.2" r="6"/>
+        <path d="M42.4 93.1L20.6 90.4"/>
+        <circle cx="14.6" cy="89.7" r="6"/>
+        <path d="M49.5 71.5L30.3 60.8"/>
+        <circle cx="25.1" cy="57.8" r="6"/>
+        <path d="M64.2 54.4L50.6 37.1"/>
+        <circle cx="46.9" cy="32.3" r="6"/>
+        <path d="M84.4 44.1L78.5 23"/>
+        <circle cx="76.8" cy="17.2" r="6"/>
+        <path d="M106.9 42.4L109.6 20.6"/>
+        <circle cx="110.3" cy="14.6" r="6"/>
+        <path d="M128.5 49.5L139.2 30.3"/>
+        <circle cx="142.2" cy="25.1" r="6"/>
+        <path d="M145.6 64.2L162.9 50.6"/>
+        <circle cx="167.7" cy="46.9" r="6"/>
+        <path d="M155.9 84.4L177 78.5"/>
+        <circle cx="182.8" cy="76.8" r="6"/>
+        <circle cx="128.7" cy="108.9" r="3.5" class="dot"/>
+        <circle cx="98.9" cy="138" r="3.5" class="dot"/>
+        <circle cx="80.1" cy="109.4" r="3.5" class="dot"/>
+        <circle cx="60.7" cy="85.3" r="3.5" class="dot"/>
+        <circle cx="91.4" cy="73.4" r="3.5" class="dot"/>
+        <circle cx="122.2" cy="66.7" r="3.5" class="dot"/>
+        <circle cx="111.1" cy="95.5" r="3.5" class="dot"/>
+        <circle cx="103.6" cy="107.1" r="3.5" class="dot"/>
+      </g></symbol>
+    </svg>
+    <svg class="mast-art" aria-hidden="true" focusable="false"><use href="#virion"/></svg>
+    <div class="eyebrow"><svg class="mark" aria-hidden="true" focusable="false"><use href="#virion"/></svg>Internet Archive · Democracy's Library</div>
     <h1>The Federal Pandemic Record</h1>
     <p class="lede">COVID-19 as the U.S. federal government told it on its own websites, from <b>December 2019</b> to the end of the Public Health Emergency on <b>11 May 2023</b>, preserved by the Wayback Machine.</p>
     <p class="stamp" id="stamp"></p>
