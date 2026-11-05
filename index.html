@@ -59,6 +59,7 @@ h1 { font: 800 clamp(28px, 5vw, 44px)/1.05 var(--display); margin: 8px 0 10px; l
 .lede { max-width: 64ch; color: var(--muted); margin: 0 }
 .lede b { color: var(--ink); font-weight: 600 }
 .stamp { margin: 10px 0 0; font: 12px var(--mono); color: var(--muted) }
+.mast .explorer-checks-note { max-width: 64ch }
 
 nav.tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); margin-top: 24px;
   position: sticky; top: env(safe-area-inset-top, 0px); background: var(--bg); z-index: 5 }
@@ -128,7 +129,9 @@ ol.docs li { display: grid; grid-template-columns: 92px 1fr auto; gap: 4px 14px;
 /* archive.org + about */
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px }
 .card { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; min-width: 0 }
-.card h2 { margin: 0; font: 600 16px/1.3 var(--body) }
+.card h3 { margin: 0; font: 600 16px/1.3 var(--body) }
+h2.group { font: 700 18px/1.3 var(--display); margin: 22px 0 6px }
+h2.group:first-child { margin-top: 0 }
 .card .id { font: 12px var(--mono); color: var(--muted); overflow-wrap: anywhere }
 .card p { margin: 0; font-size: 14px; color: var(--muted) }
 .big { font: 800 22px/1 var(--display); font-variant-numeric: tabular-nums }
@@ -189,14 +192,22 @@ code { font: 13px var(--mono); background: var(--accent-soft); padding: 1px 4px;
     <svg class="mast-art" aria-hidden="true" focusable="false"><use href="#virion"/></svg>
     <div class="eyebrow"><svg class="mark" aria-hidden="true" focusable="false"><use href="#virion"/></svg>Internet Archive · Democracy's Library</div>
     <h1>The Federal Pandemic Record</h1>
-    <p class="lede">COVID-19 as the U.S. federal government told it on its own websites, from <b>December 2019</b> to the end of the Public Health Emergency on <b>11 May 2023</b>, preserved by the Wayback Machine.</p>
+    <p class="lede">COVID-19 as the U.S. federal government told it on its own websites, from <b>December 2019</b> to the end of the Public Health Emergency on <b>11 May 2023</b>, preserved by the Wayback Machine, alongside related collections in Democracy's Library.</p>
     <p class="stamp" id="stamp"></p>
+    <!-- explorer-checks:note -->
+    <p class="explorer-checks-note" style="font-size:0.875em;margin:1em 0 0">
+      Meets WCAG 2.2 Level AA accessibility (and WCAG 2.1 AA and 2.0 AA), checked
+      <time datetime="2026-11-05">5 November 2026</time> by automated tests and manual review.
+      Also passes security and code validity checks.
+      <a href="https://github.com/internetarchivecanada/federal-pandemic-record-covid19/blob/main/security-accessibility-checks.md">Read the report</a>.
+    </p>
+    <!-- /explorer-checks:note -->
   </header>
 
   <nav class="tabs" aria-label="Views">
     <a href="#documents" data-v="documents">Documents</a>
     <a href="#pages" data-v="pages">Pages over time</a>
-    <a href="#archive" data-v="archive">On archive.org</a>
+    <a href="#archive" data-v="archive">Democracy's Library</a>
     <a href="#about" data-v="about">About</a>
   </nav>
 
@@ -225,7 +236,12 @@ code { font: 13px var(--mono); background: var(--accent-soft); padding: 1px 4px;
   </section>
 
   <section class="view" id="v-archive" hidden>
-    <p class="lede" style="margin-bottom:14px">Related collections already on archive.org. Counts are from the public search index on 26 Oct 2026, so each is a floor.</p>
+    <h2 class="group">In Democracy's Library</h2>
+    <p class="lede" style="margin-bottom:14px">COVID-19 material in Democracy's Library's own collections. An item is in the library either because it carries the library's tag or because the library's scope names its collection; each card says which. Counts are keyword matches (covid, COVID-19, coronavirus, SARS-CoV-2) in the public search index on 5 Nov 2026, not yet read item by item.</p>
+    <div class="cards" id="cards-dl"></div>
+    <p class="lede" style="margin:14px 0 0">The library's scope also covers governments outside the United States: Aruba alone has 614 COVID-19 items there. They are outside this federal record.</p>
+    <h2 class="group">Elsewhere on archive.org</h2>
+    <p class="lede" style="margin-bottom:14px">Related collections outside Democracy's Library. Counts are from the public search index on 26 Oct 2026, so each is a floor.</p>
     <div class="cards" id="cards"></div>
   </section>
 
@@ -252,16 +268,6 @@ code { font: 13px var(--mono); background: var(--accent-soft); padding: 1px 4px;
     </ul>
   </section>
   </main>
-<!-- explorer-checks:note -->
-<footer>
-<p class="explorer-checks-note" style="font-size:0.875em;margin:1em 0 0">
-  Meets WCAG 2.2 Level AA accessibility (and WCAG 2.1 AA and 2.0 AA), checked
-  <time datetime="2026-11-05">5 November 2026</time> by automated tests and manual review.
-  Also passes security and code validity checks.
-  <a href="https://github.com/internetarchivecanada/federal-pandemic-record-covid19/blob/main/security-accessibility-checks.md">Read the report</a>.
-</p>
-</footer>
-<!-- /explorer-checks:note -->
 </div>
 
 <script src="corpus.js"></script>

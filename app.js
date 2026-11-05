@@ -129,7 +129,14 @@ document.getElementById("pages").innerHTML = M.pages.map(p => {
   return `<details class="prow"><summary><span style="min-width:0"><div class="pname">${esc(name)} ${flag}</div><div class="purl">${esc(p.url)}</div></span>${spark(p)}<span class="pstat">${fmtN(p.versions)} versions<br>peak ${p.peak} KB</span></summary><div class="months">${rows}</div></details>`;
 }).join("");
 
-/* ---- archive.org ---- */
+/* ---- Democracy's Library and archive.org ---- */
+// Searches use the same keywords as the counts on the cards.
+const COVID_Q = '(covid OR "covid-19" OR covid19 OR coronavirus OR "sars-cov-2")';
+const search = q => "https://archive.org/search?query=" + encodeURIComponent(q);
+const DL_CARDS = [
+  ["U.S. Agency for Global Media: COVID-19 reports", "usagm", "Voice of America and Radio Free Asia videos, such as reports on zero-COVID protests in China. In the library by its tag.", 228, `collection:usagm AND collection:democracys-library AND ${COVID_Q}`],
+  ["US Government Documents: COVID-19", "USGovernmentDocuments", "98 of the 99 are federal court dockets, such as COVID-19 court-operations orders and test-kit seizures. In the library by its scope.", 99, `collection:USGovernmentDocuments AND ${COVID_Q}`],
+  ["FEDLINK: COVID-19", "fedlink", "Naval Postgraduate School theses, on PPE supply chains and public health among others. Some only mention the pandemic. In the library by its scope.", 6, `collection:fedlink AND ${COVID_Q}`]];
 const CARDS = [
   ["Coronavirus (COVID-19)", "ArchiveIt-Collection-13721", "Archive-It, from the Federal Depository Library Program Web Archive (partner 593)."],
   ["COVID.gov", "ArchiveIt-Collection-19129", "Archive-It, FDLP Web Archive."],
@@ -139,9 +146,10 @@ const CARDS = [
   ["White House Coronavirus Task Force briefings", "TV-CSPAN", "C-SPAN recordings in the TV News Archive, titled “Coronavirus Task Force”.", 145],
   ["CDC YouTube channel", "cdc-youtube-channel", "All of CDC's videos, not only the COVID ones. A topic filter is still to do.", 6664],
   ["COVID-19 Apps", "COVID-19_Apps", "Archived apps, including CDC's own.", 257],
-  ["U.S. Government Documents matching coronavirus or covid", "USGovernmentDocuments", "Keyword match inside the collection. Not yet read item by item.", 98],
   ["State Executive Actions Related to the COVID-19 Pandemic", "ArchiveIt-Collection-15784", "States rather than federal. A companion collection, linked but not in the corpus."]];
-document.getElementById("cards").innerHTML = CARDS.map(([t, id, note, n]) => `<div class="card">${n ? `<div class="big">${fmtN(n)}<span class="num"> items</span></div>` : ""}<h2><a href="https://archive.org/details/${id}" target="_blank" rel="noopener">${esc(t)}</a></h2><div class="id">${id}</div><p>${note}</p></div>`).join("");
+const card = ([t, id, note, n, q]) => `<div class="card">${n ? `<div class="big">${fmtN(n)}<span class="num"> items</span></div>` : ""}<h3><a href="${q ? search(q) : `https://archive.org/details/${id}`}" target="_blank" rel="noopener">${esc(t)}</a></h3><div class="id">${id}</div><p>${note}</p></div>`;
+document.getElementById("cards-dl").innerHTML = DL_CARDS.map(card).join("");
+document.getElementById("cards").innerHTML = CARDS.map(card).join("");
 document.getElementById("ab-cdc").textContent = `${fmtN(M.stats.cdc_files)} CDC files fold into ${fmtN(M.stats.cdc_docs)} documents.`;
 document.getElementById("stamp").textContent = `${fmtN(D.length)} documents · Wayback index read ${M.stats.harvested}`;
 

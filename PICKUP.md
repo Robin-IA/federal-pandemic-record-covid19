@@ -327,7 +327,10 @@ Prototype explorer, in this order:
    month, a size line, placeholder months marked, and a link to the successor
    page. Expanding a row shows monthly snapshot links plus diff and compare
    links.
-3. **On archive.org.** The collections above, with counts derived from search.
+3. **Democracy's Library.** COVID-19 material in the library's own
+   collections (U.S. Agency for Global Media by tag; US Government Documents
+   and FEDLINK by scope), then the collections above under "Elsewhere on
+   archive.org", with counts derived from search.
 4. **About.** The corpus rule, the traps, and caveats with their measured
    numbers.
 
