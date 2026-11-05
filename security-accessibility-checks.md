@@ -1,35 +1,37 @@
 # Security and accessibility checks
 
-**Status: passing.** All three checks passed on 2026-11-03 at commit `a8bab5b500`. Nothing is open. Advisory items below are optional.
+**Status: passing.** All three checks passed on 2026-11-05 at commit `9d43041822`. Nothing is open. Advisory items below are optional.
 
 | | |
 |---|---|
 | Explorer | https://github.com/internetarchivecanada/federal-pandemic-record-covid19 |
-| Commit | `a8bab5b500` on `explorer-checks` |
-| Date | 2026-11-03 |
+| Commit | `9d43041822` on `header-motif` |
+| Date | 2026-11-05 |
 | Pages checked | `./`, `./#pages`, `./#archive`, `./#about` |
 | Served from | repository root, served locally |
 | Live site (headers) | https://internetarchivecanada.github.io/federal-pandemic-record-covid19/ |
 | Standard | WCAG 2.2 Level AA |
-| Tools | axe-core 4.10.3, html5lib, ruff, bandit, pip-audit, headless Chromium |
+| Security references | OWASP Top 10:2025 and ASVS 5.0.0 |
+| Tools | axe-core 4.14.0, html5lib, ruff, bandit, pip-audit, headless Chromium |
 | Reviewed by | Claude (claude-opus-5-5) via the explorer-checks skill |
-| Skill version | 2026.11.03.2 |
+| Skill version | 2026.11.05.1 |
 
 ## Summary
 
 | Check | Result | Must fix | Needs review | Advisory |
 |---|---|---:|---:|---:|
 | Code validity | Pass | 0 | 0 | 0 |
-| Code security | Pass | 0 | 0 | 1 |
+| Code security | Pass | 0 | 0 | 3 |
 | Accessibility (WCAG 2.2 AA) | Pass | 0 | 0 | 0 |
 
 ## Standards met
 
-Checked 3 November 2026 at commit `a8bab5b500`, on the pages listed above:
+Checked 5 November 2026 at commit `9d43041822`, on the pages listed above:
 
 - **WCAG 2.2 Level AA**: every Level A and AA success criterion, by automated tests and a manual review of each criterion (checklists under each check below).
 - **WCAG 2.1 Level AA** and **WCAG 2.0 Level AA**, which WCAG 2.2 includes. 4.1.1 Parsing, dropped from 2.2 but still in 2.0 and 2.1, is covered by the code validity check (no HTML parse errors, no duplicate ids).
 - These are the web content requirements of **Section 508** (US federal; WCAG 2.0 AA) and **EN 301 549** clause 9 (WCAG 2.1 AA).
+- Security was checked against the OWASP Top 10:2025 risks and ASVS 5.0.0 chapters that apply to an explorer; each finding and checklist item names its category. That is not an ASVS verification at any level.
 
 ## What a pass means
 
@@ -116,12 +118,14 @@ No open items.
 
 </details>
 
-## Advisory (1)
+## Advisory (3)
 
 Optional. These items never block a pass.
 
-| Id | Check | Item | Where | Suggestion |
-|---|---|---|---|---|
-| `S-1baacc` | security | No x-content-type-options header | `https://internetarchivecanada.github.io/federal-pandemic-record-covid19/` | Set it; it stops browsers guessing content types. It has no <meta> form, so on a host that cannot set headers (GitHub Pages) it stays open; the explorer's owners decide whether that matters enough to change host. |
+| Id | Check | Item | Where | Reference | Suggestion |
+|---|---|---|---|---|---|
+| `S-1baacc` | security | No x-content-type-options header | `https://internetarchivecanada.github.io/federal-pandemic-record-covid19/` | A02:2025 · ASVS V3 | Set it; it stops browsers guessing content types. It has no <meta> form, so on a host that cannot set headers (GitHub Pages) it stays open; the explorer's owners decide whether that matters enough to change host. |
+| `S-36c938` | security | Page contacts a third party: fonts.googleapis.com | `/` | ASVS V3 | Every visitor's IP address and the page they are on go to this host. Serve the file from the explorer itself (fonts and libraries can be vendored), or keep it and say so in the review. |
+| `S-21f485` | security | Page contacts a third party: fonts.gstatic.com | `/` | ASVS V3 | Every visitor's IP address and the page they are on go to this host. Serve the file from the explorer itself (fonts and libraries can be vendored), or keep it and say so in the review. |
 
-<!-- explorer-checks:state {"passing": true, "date": "2026-11-03", "commit": "a8bab5b5003052f0e44942d38457ccef8bf6fdea", "open": [], "titles": {}} -->
+<!-- explorer-checks:state {"passing": true, "date": "2026-11-05", "commit": "9d43041822d9700e101b695c3c2ef4542b8ad770", "open": [], "titles": {}} -->
