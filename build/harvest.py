@@ -69,6 +69,10 @@ ROW_CAP = 150_000
 CACHE_METHOD = "v1"
 MONTH = "{month}"
 HUB_FLOOR = "20200101"
+# CDX can answer an empty 200 for a query that has rows (seen by dates.py,
+# 26 Oct 2026), so an empty answer is asked again, this long after, before it
+# is believed.
+EMPTY_PAUSE = 10.0
 DEFAULT_STATUSES = {"harvested", "partial", "retry"}
 
 # Tested in the Cowork survey. Word boundaries matter: without them "ppe"
@@ -139,7 +143,14 @@ def fetch(url: str, *, timeout: int = TIMEOUT) -> str:
                 # An id_ replay is the body as the site sent it, gzip and all.
                 if body[:2] == b"\x1f\x8b":
                     body = gzip.decompress(body)
-                return body.decode("utf-8", "replace")
+                text = body.decode("utf-8", "replace")
+            # During an outage CDX answers 200 with its "Temporarily Offline"
+            # HTML page (6 Nov 2026). Read as CDX text that is zero rows, and
+            # it was cached as a finished, empty source. CDX text never
+            # starts with "<"; a replay (id_) is HTML and is not checked.
+            if url.startswith(CDX) and text.lstrip()[:1] == "<":
+                raise RuntimeError("CDX answered an HTML page, not rows (Temporarily Offline?)")
+            return text
         except urllib.error.HTTPError as exc:
             last = exc
             # 429 and 5xx are worth waiting out; other 4xx are not.
@@ -178,6 +189,15 @@ def parse_rows(body: str) -> list[dict]:
     return rows
 
 
+def cdx_rows(url: str) -> list[dict]:
+    """Rows for one CDX request, asking a second time before believing none."""
+    rows = parse_rows(fetch(url))
+    if not rows:
+        time.sleep(EMPTY_PAUSE)
+        rows = parse_rows(fetch(url))
+    return rows
+
+
 # ---------------------------------------------------------------- cache
 
 def write_cache(path: Path, payload: dict) -> None:
@@ -208,7 +228,7 @@ def harvest_prefix(source: dict, cache: Path) -> dict:
         return entry
     started = time.time()
     try:
-        rows = parse_rows(fetch(query(source, limit=ROW_CAP, showResumeKey="true")))
+        rows = cdx_rows(query(source, limit=ROW_CAP, showResumeKey="true"))
         entry = {"code": source["code"], "method": CACHE_METHOD, "rows": rows,
                  "seconds": round(time.time() - started, 1),
                  "fetched": time.strftime("%Y-%m-%dT%H:%M:%S")}
@@ -245,7 +265,7 @@ def harvest_paged(source: dict, cache: Path, pause: float) -> dict:
         if is_done(read_cache(path)):
             continue
         try:
-            rows = parse_rows(fetch(query(source, page=page)))
+            rows = cdx_rows(query(source, page=page))
             write_cache(path, {"method": CACHE_METHOD, "rows": rows})
         except Exception as exc:  # noqa: BLE001
             failed += 1
@@ -299,7 +319,7 @@ def harvest_months(source: dict, cache: Path, pause: float) -> dict:
             continue
         one = source | {"prefix": source["prefix"].replace(MONTH, m)}
         try:
-            rows = parse_rows(fetch(query(one, limit=ROW_CAP, showResumeKey="true")))
+            rows = cdx_rows(query(one, limit=ROW_CAP, showResumeKey="true"))
             write_cache(path, {"method": CACHE_METHOD, "rows": rows})
         except Exception as exc:  # noqa: BLE001
             write_cache(path, {"error": str(exc)[:160]})
@@ -445,7 +465,7 @@ def harvest_hub(source: dict, cache: Path, pause: float) -> dict:
         params = [("url", url), ("from", FROM), ("to", TO), ("filter", "statuscode:200"),
                   ("limit", "1"), ("fl", ",".join(FIELDS))]
         try:
-            rows = parse_rows(fetch(f"{CDX}?{urllib.parse.urlencode(params)}"))
+            rows = cdx_rows(f"{CDX}?{urllib.parse.urlencode(params)}")
             write_cache(path, {"method": CACHE_METHOD, "url": url, "rows": rows[:1]})
         except Exception as exc:  # noqa: BLE001
             write_cache(path, {"url": url, "error": str(exc)[:160]})

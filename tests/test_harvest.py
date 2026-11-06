@@ -47,6 +47,76 @@ class ParseRows(unittest.TestCase):
         self.assertEqual(harvest.parse_rows(""), [])
 
 
+class Response:
+    def __init__(self, body: bytes):
+        self.body = body
+
+    def read(self):
+        return self.body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+class Network(unittest.TestCase):
+    """An outage or a stray empty answer is a failure or a re-ask, never zero rows."""
+
+    OFFLINE = (b'<html><head><meta charset="UTF-8"><title>Internet Archive: '
+               b'Temporarily Offline</title></head><body>offline</body></html>')
+    ROW = b"http://a/x.pdf 20200101000000 application/pdf 200 D 10\n"
+
+    def setUp(self):
+        self.saved = (harvest.urllib.request.urlopen, harvest.time.sleep, harvest.EMPTY_PAUSE)
+        harvest.time.sleep = lambda s: None
+        harvest.EMPTY_PAUSE = 0
+        self.calls = 0
+
+    def tearDown(self):
+        harvest.urllib.request.urlopen, harvest.time.sleep, harvest.EMPTY_PAUSE = self.saved
+
+    def answer(self, *bodies):
+        def urlopen(request, timeout=None):
+            body = bodies[min(self.calls, len(bodies) - 1)]
+            self.calls += 1
+            return Response(body)
+        harvest.urllib.request.urlopen = urlopen
+
+    def test_offline_page_from_cdx_is_a_failure(self):
+        self.answer(self.OFFLINE)
+        with self.assertRaises(RuntimeError):
+            harvest.fetch(harvest.CDX + "?url=x")
+        self.assertEqual(self.calls, harvest.RETRIES)
+
+    def test_offline_then_rows_recovers(self):
+        self.answer(self.OFFLINE, self.ROW)
+        self.assertEqual(len(harvest.cdx_rows(harvest.CDX + "?url=x")), 1)
+
+    def test_replay_html_is_not_checked(self):
+        self.answer(b"<html>a page</html>")
+        self.assertIn("a page", harvest.fetch("https://web.archive.org/web/2020id_/http://a/"))
+
+    def test_empty_is_asked_twice(self):
+        self.answer(b"", self.ROW)
+        self.assertEqual(len(harvest.cdx_rows(harvest.CDX + "?url=x")), 1)
+        self.assertEqual(self.calls, 2)
+
+    def test_empty_twice_is_empty(self):
+        self.answer(b"")
+        self.assertEqual(harvest.cdx_rows(harvest.CDX + "?url=x"), [])
+        self.assertEqual(self.calls, 2)
+
+    def test_prefix_source_offline_is_cached_as_failure(self):
+        import tempfile
+        self.answer(self.OFFLINE)
+        with tempfile.TemporaryDirectory() as tmp:
+            entry = harvest.harvest_prefix(src(), Path(tmp))
+            self.assertIn("error", entry)
+            self.assertFalse(harvest.is_done(harvest.read_cache(Path(tmp) / "t.json")))
+
+
 class Clean(unittest.TestCase):
     def test_query_strings_fold_and_earliest_wins(self):
         rows = [row("https://www.example.gov/files/a.pdf?v=2", "20200501000000"),
