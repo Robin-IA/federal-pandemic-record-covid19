@@ -1,6 +1,8 @@
 # One row per CDX query. Read by build/harvest.py; lines starting # are comments.
 #
-# mode      prefix = one matchType=prefix request; paged = walk CDX index pages, one cached file per page
+# mode      prefix = one matchType=prefix request; paged = walk CDX index pages, one cached file per page;
+#           months = one prefix request per upload month of the period, {month} in the prefix (Drupal YYYY-MM folders);
+#           hub = the documents an agency's COVID page and the pages under it linked to, on the agency's own site
 # filters   CDX filter= terms, separated by ;  (applied by the server, before collapse)
 # dated     yes = from=201912&to=202305 on the request; no = the host's captures start after the period
 #           (the archives.gov mirrors began in 2021), so the date has to come from the URL or a lookup
@@ -26,3 +28,13 @@ wh-uploads-trump	White House (Trump)	trumpwhitehouse.archives.gov/wp-content/upl
 wh-uploads-biden	White House (Biden)	bidenwhitehouse.archives.gov/wp-content/uploads/	prefix	mimetype:application/pdf	no	keywords	queued
 cdc-ncov	CDC	www.cdc.gov/coronavirus/2019-ncov/	paged	mimetype:application/pdf	yes	all	queued	1767 pages	about 16 hours; run from a terminal under caffeinate -i
 hhs-files	HHS	www.hhs.gov/sites/default/files/	paged	mimetype:application/pdf	yes	keywords	queued	425 pages
+cms	CMS	www.cms.gov/files/document/	paged	statuscode:200;mimetype:application/pdf	yes	keywords	queued		65 pages; probe of 4 pages found 81 COVID names (#21)
+sba	SBA	www.sba.gov/sites/default/files/{month}/	months	statuscode:200;mimetype:application/pdf	yes	keywords	harvested		upload-month folders; whole folder is 125 pages (#24)
+fema	FEMA	www.fema.gov/sites/default/files/{month}/	months	statuscode:200;mimetype:application/pdf	yes	keywords	harvested		month folders hold files only for 2020; later uploads are elsewhere (#20)
+va	VA	www.publichealth.va.gov/n-coronavirus/	prefix	statuscode:200	yes	all	harvested		the whole folder is COVID (#27)
+treasury	Treasury	home.treasury.gov/policy-issues/coronavirus	hub		yes	all	harvested		file names do not say COVID; about 100 pages under the hub (#23)
+dol	DOL	www.dol.gov/coronavirus	hub		yes	all	harvested		the hub links mostly to doleta.gov and osha.gov, which are other sites (#25)
+osha	OSHA	www.osha.gov/coronavirus	hub		yes	all	harvested		publications are numbered (OSHA3990.pdf) (#22)
+usda	USDA	www.usda.gov/coronavirus	hub		yes	all	harvested		links to rd.usda.gov and fns.usda.gov count as USDA (#26)
+fda	FDA	www.fda.gov/emergency-preparedness-and-response/coronavirus-disease-2019-covid-19	hub		yes	all	harvested		files are /media/<id>/download with no name (#28)
+treasury-cares	Treasury	home.treasury.gov/policy-issues/cares	hub		yes	all	harvested		the hub before April 2021, when it moved to policy-issues/coronavirus (#23)

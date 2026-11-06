@@ -51,5 +51,49 @@ class PublicHealthEmergency(unittest.TestCase):
         self.assertEqual(build_site.one_per_declaration([a, b]), [a, b])
 
 
+def hub_doc(key, **kw):
+    return {"source": "fda", "agency": "FDA", "key": key, "languages": [], "mimetype": "application/pdf",
+            "timestamp": "20201219000000", "first_ts": "20201219000000",
+            "original": "https://www." + key} | kw
+
+
+class HubTitles(unittest.TestCase):
+    def test_link_text_is_the_title(self):
+        d = build_site.entry(hub_doc("fda.gov/media/144638/download", link_text="Moderna EUA letter"), {})
+        self.assertEqual(d["title"], "Moderna EUA letter")
+
+    def test_without_link_text_the_file_name_is_the_title(self):
+        d = build_site.entry(hub_doc("osha.gov/sites/default/files/publications/osha4017.pdf"), {})
+        self.assertEqual(d["title"], "Osha4017")
+
+    def test_a_language_name_alone_is_not_a_title(self):
+        for text in ["French Creole", "Spanish", "Chinese (Simplified)", "Haitian Creole version"]:
+            d = build_site.entry(hub_doc("osha.gov/x/osha4007.pdf", link_text=text), {})
+            self.assertEqual(d["title"], "Osha4007", text)
+
+    def test_an_address_is_not_a_title(self):
+        d = build_site.entry(hub_doc("aphis.usda.gov/import/covid-19-info.pdf",
+                                     link_text="www.aphis.usda.gov/import/covid-19-info.pdf"), {})
+        self.assertEqual(d["title"], "Covid 19 info")
+
+    def test_untitled_fda_media_is_named_by_its_id(self):
+        d = build_site.entry(hub_doc("fda.gov/media/142399/download"), {})
+        self.assertEqual(d["title"], "FDA document 142399")
+
+    def test_a_file_in_two_sources_is_listed_once_earliest_first(self):
+        a = hub_doc("home.treasury.gov/system/files/136/plan.pdf", source="treasury",
+                    first_ts="20210501000000", link_text="Plan")
+        b = hub_doc("home.treasury.gov/system/files/136/plan.pdf", source="treasury-cares",
+                    first_ts="20200601000000", link_text="Plan")
+        c = hub_doc("home.treasury.gov/system/files/136/other.pdf")
+        kept, repeats = build_site.one_per_file([a, b, c])
+        self.assertEqual((kept, repeats), ([b, c], 1))
+
+    def test_a_title_in_another_language_is_kept(self):
+        d = build_site.entry(hub_doc("dol.gov/whd/pandemic/1422-spanish.pdf",
+                                     link_text="Derechos del empleado sobre licencia laboral pagada"), {})
+        self.assertEqual(d["title"], "Derechos del empleado sobre licencia laboral pagada")
+
+
 if __name__ == "__main__":
     unittest.main()

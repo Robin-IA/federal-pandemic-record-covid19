@@ -108,6 +108,107 @@ class Clean(unittest.TestCase):
             self.assertEqual(harvest.well_formed(k), k)
 
 
+class Months(unittest.TestCase):
+    def test_months_cover_the_period(self):
+        m = harvest.months()
+        self.assertEqual((m[0], m[-1], len(m)), ("2019-12", "2023-05", 42))
+
+    def test_month_prefix_and_mode_go_together(self):
+        import tempfile
+        header = ["code", "agency", "prefix", "mode", "filters", "dated", "select", "status", "handoff", "note"]
+        values = ["x", "X", "www.example.gov/files/{month}/", "prefix", "", "yes", "all", "harvested", "", ""]
+        bad = "\t".join(header) + "\n" + "\t".join(values) + "\n"
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "s.tsv"
+            path.write_text(bad, encoding="utf-8")
+            with self.assertRaises(ValueError):
+                harvest.load_sources(path)
+
+    def test_month_folders_clean_against_the_base(self):
+        s = src(prefix="www.example.gov/files/{month}/", mode="months", select="keywords")
+        kept = harvest.clean(s, [row("https://www.example.gov/files/2020-04/covid-loan-faq.pdf"),
+                                 row("https://www.example.gov/files/2020-04/annual-report.pdf"),
+                                 row("https://www.example.gov/other/2020-04/covid.pdf")])
+        self.assertEqual([k["key"] for k in kept], ["example.gov/files/2020-04/covid-loan-faq.pdf"])
+
+    def test_months_resume_and_report_missing(self):
+        import tempfile
+        s = src(prefix="www.example.gov/files/{month}/", mode="months")
+        with tempfile.TemporaryDirectory() as d:
+            cache = Path(d)
+            harvest.write_cache(cache / "t" / "month-2020-04.json",
+                                {"method": harvest.CACHE_METHOD, "rows": [row("https://www.example.gov/files/2020-04/a.pdf")]})
+            entry = harvest.load(s, cache)
+            self.assertEqual(len(entry["rows"]), 1)
+            self.assertEqual(entry["error"], "41 of 42 months not in")
+
+
+class Hub(unittest.TestCase):
+    PAGE = "https://www.example.gov/coronavirus"
+
+    def links(self, html):
+        return sorted(harvest.doc_links(html, self.PAGE))
+
+    def test_relative_links_made_absolute(self):
+        self.assertEqual(self.links('<a href="/files/guide.pdf">Guide</a>'),
+                         ["https://www.example.gov/files/guide.pdf"])
+
+    def test_same_site_subdomain_counts_other_site_does_not(self):
+        html = '<a href="https://www.rd.example.gov/a.pdf">A</a> <a href="https://www.other.gov/b.pdf">B</a>'
+        self.assertEqual(self.links(html), ["https://www.rd.example.gov/a.pdf"])
+
+    def test_pages_and_fragments_are_not_documents(self):
+        html = '<a href="/coronavirus/faq">FAQ</a> <a href="#top">Top</a> <a href="mailto:x@example.gov">Mail</a>'
+        self.assertEqual(self.links(html), [])
+
+    def test_fda_media_download_is_a_document(self):
+        self.assertEqual(self.links("<a class='x' href='/media/136316/download'>Letter</a>"),
+                         ["https://www.example.gov/media/136316/download"])
+
+    def test_wayback_prefix_and_query_stripped(self):
+        html = '<a href="https://web.archive.org/web/20210101000000/https://www.example.gov/a.pdf?x=1&amp;y=2">A</a>'
+        self.assertEqual(self.links(html), ["https://www.example.gov/a.pdf"])
+
+    def test_link_text_becomes_the_title(self):
+        html = ('<a href="/media/1/download"><span>Emergency Use Authorization</span>\n'
+                ' letter &amp; fact sheet (PDF - 210KB)</a>')
+        self.assertEqual(harvest.doc_links(html, self.PAGE),
+                         {"https://www.example.gov/media/1/download": "Emergency Use Authorization letter & fact sheet"})
+
+    def test_empty_link_text_is_dropped_and_longer_text_wins(self):
+        html = ('<a href="/f/osha3990.pdf">PDF</a> <a href="/f/osha3990.pdf">osha3990.pdf</a>'
+                ' <a href="/f/osha3990.pdf">Guidance on Preparing Workplaces for COVID-19</a>'
+                ' <a href="/f/x.pdf">Download</a>')
+        self.assertEqual(harvest.doc_links(html, self.PAGE),
+                         {"https://www.example.gov/f/osha3990.pdf": "Guidance on Preparing Workplaces for COVID-19",
+                          "https://www.example.gov/f/x.pdf": ""})
+
+    def test_documents_from_before_2020_are_dropped_but_not_those_older_than_the_hub(self):
+        import tempfile
+        s = src(prefix="www.example.gov/coronavirus", mode="hub")
+        hub = "https://www.example.gov/coronavirus"
+        with tempfile.TemporaryDirectory() as d:
+            folder = Path(d) / "t"
+            harvest.write_cache(folder / "_pages.json", {"pages": [["20210414000000", hub]]})
+            harvest.write_cache(harvest._hashed(folder, "page", "20210414000000" + hub),
+                                {"method": harvest.CACHE_METHOD,
+                                 "links": {"https://www.example.gov/old.pdf": "",
+                                           "https://www.example.gov/new.pdf": "New guidance"}})
+            for name, ts in (("old", "20191215000000"), ("new", "20200401000000")):
+                url = f"https://www.example.gov/{name}.pdf"
+                harvest.write_cache(harvest._hashed(folder, "doc", harvest.canonical(url)),
+                                    {"method": harvest.CACHE_METHOD, "rows": [row(url, ts)]})
+            entry = harvest.load(s, Path(d))
+        self.assertEqual(entry["before_hub"], 1)
+        self.assertEqual([(r["original"], r.get("link_text")) for r in entry["rows"]],
+                         [("https://www.example.gov/new.pdf", "New guidance")])
+
+    def test_hub_documents_need_not_sit_under_the_hub(self):
+        s = src(prefix="www.example.gov/coronavirus", mode="hub")
+        kept = harvest.clean(s, [row("https://www.example.gov/files/guide.pdf")])
+        self.assertEqual([k["key"] for k in kept], ["example.gov/files/guide.pdf"])
+
+
 class Sources(unittest.TestCase):
     def test_sources_tsv_loads(self):
         sources = harvest.load_sources(ROOT / "build" / "sources.tsv")

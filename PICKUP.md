@@ -190,8 +190,15 @@ never as a day, unless a date is in the URL or the document.
 | PHE | PHE declarations after the move | `aspr.hhs.gov/legal/PHE/Pages/` | Harvested 5 Nov 2026: 102 rows, 55 kept. phe.gov moved here in 2022 and re-hosted the earlier pages; renewals from January 2022 to February 2023 are only here. The build keeps each declaration once, from its first capture: 14 in all (the determination and 13 renewals). |
 | DHS | `www.dhs.gov/sites/default/files/publications/` | | Partial: `covid*` = 15 |
 | CISA | `www.cisa.gov/sites/default/files/publications/` | | Partial: `covid*` = 6. The essential critical infrastructure workforce guidance PDFs are not named `covid*`; look at `cisa.gov/identifying-critical-infrastructure-during-covid-19` for their URLs. |
-| FEMA, CMS, OSHA, Treasury, SBA, DOL, USDA, VA | see `build/sources.tsv` to write | | Queued, not finished when the browser dropped |
-| FDA | `www.fda.gov/media/<id>/download` | | Filenames are numeric; titles must come from the linking pages. Do this later. |
+| Treasury | hubs `policy-issues/cares` (to April 2021) and `policy-issues/coronavirus` | mode `hub` | Test-harvested 6 Nov 2026: **1,141 documents** after the corpus rule, March 2020 to May 2023; 228 files linked from both hubs counted once. Relief-program files: CARES Act, ARP recovery plans, ERA, HAF. Many titles are bare ("Transaction Summary", "Term Sheet"); see #32. |
+| CMS | `www.cms.gov/files/document/` | `paged`, keywords | Test-harvested 6 Nov 2026: 65 pages, 8,230 rows, **306 documents**. |
+| FDA | hub `emergency-preparedness-and-response/coronavirus-disease-2019-covid-19` and the pages under it | mode `hub` | Test-harvested 6 Nov 2026: **224 documents**, titled from link text; untitled ones are "FDA document <id>". EUA letters, fact sheets in many languages. 1 of 32 pages still answered 503. |
+| SBA | `www.sba.gov/sites/default/files/{month}/` | mode `months`, keywords | Test-harvested 6 Nov 2026: **214 documents** (EIDL, PPP). |
+| OSHA | hub `www.osha.gov/coronavirus` and pages under it | mode `hub` | Test-harvested 6 Nov 2026: **172 documents**; publications are numbered (`osha4017.pdf`), so link text gives the titles. |
+| FEMA | `www.fema.gov/sites/default/files/{month}/` | mode `months`, keywords | Test-harvested 6 Nov 2026: **117 documents**. Month folders hold files for 2020 only; later uploads are elsewhere and not reached yet. |
+| VA | `www.publichealth.va.gov/n-coronavirus/` | prefix, all | Test-harvested 6 Nov 2026: **45 documents**: 9 PDFs and 36 weekly State Veterans Homes case spreadsheets. The rest of the folder is pages and images. |
+| USDA | hub `www.usda.gov/coronavirus` | mode `hub` | Test-harvested 6 Nov 2026: **11 documents**, including rd.usda.gov and ams.usda.gov files. |
+| DOL | hub `www.dol.gov/coronavirus` | mode `hub` | Test-harvested 6 Nov 2026: **6 documents**. The hub links mostly to wdr.doleta.gov (UIPLs) and osha.gov, which are other sites; UIPL 14-20 and the rest are not reached yet. |
 
 Keyword regex used on slugs (tested; an earlier version matched "ppe" inside
 "copper", so keep the word boundaries):
@@ -305,7 +312,7 @@ guidance 11 Aug 2022; national emergency ended 10 Apr 2023; PHE ended 11 May
 ## Proposed pipeline (mirrors congressional-letters)
 
 ```
-build/sources.tsv          agency, prefix, mode (prefix|paged|exact|archives-mirror), filters
+build/sources.tsv          agency, prefix, mode (prefix|paged|months|hub), filters
 build/harvest.py           CDX per source → data/cdx-cache/ (raw rows, resumable, failures recorded)
 build/dates.py             exact-URL first-capture lookups (Trump WH items), URL dates (Biden)
 build/languages.py         translation folding + tests
