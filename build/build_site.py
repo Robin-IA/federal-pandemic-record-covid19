@@ -33,6 +33,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "build"))
 import harvest  # noqa: E402
+import languages  # noqa: E402
 
 FILE_TYPES = {
     "application/pdf": "PDF",
@@ -65,6 +66,44 @@ def title_from(key: str) -> str:
     slug = re.sub(r"\.(pdf|docx?|xlsx?|html?|aspx)$", "", slug, flags=re.I)
     words = re.sub(r"[-_]+", " ", slug).strip()
     return words[:1].upper() + words[1:] if words else key
+
+
+LANGUAGE_WORDS = set(languages.NAMES) | languages.QUALIFIERS | {"language", "version", "creole", "-", "/"}
+URLISH = re.compile(r"^(https?://|www\.)|\.(gov|com|org)/", re.IGNORECASE)
+MEDIA_ID = re.compile(r"/media/(\d+)/download$")
+
+
+def one_per_file(documents: list[dict]) -> tuple[list[dict], int]:
+    """One document per file across sources, the earliest capture kept.
+
+    Sources overlap: Treasury's two hubs link the same files, hhs-files holds
+    hhs-covid, cdc-ncov holds cdc-dl. A link text wins over none, since the
+    keyword sources have none to give.
+    """
+    best: dict[str, dict] = {}
+    for d in documents:
+        held = best.get(d["key"])
+        when = d.get("first_ts") or d["timestamp"]
+        if held is None or (when, not d.get("link_text")) < \
+                (held.get("first_ts") or held["timestamp"], not held.get("link_text")):
+            best[d["key"]] = d
+    kept = [d for d in documents if best[d["key"]] is d]
+    return kept, len(documents) - len(kept)
+
+
+def hub_title(d: dict) -> str:
+    """A hub document's title: the words that linked to it, where they name it.
+
+    A translation's link often says only its language ("French Creole"), and a
+    few links are their own address; neither names the document. FDA's files
+    are /media/<id>/download, so with no words the id is the most there is.
+    """
+    text = d.get("link_text", "")
+    words = re.findall(r"[\w/-]+", text.lower())
+    if text and not URLISH.search(text) and not set(words) <= LANGUAGE_WORDS:
+        return text
+    m = MEDIA_ID.search(d["key"])
+    return f"{d['agency']} document {m.group(1)}" if m else title_from(d["key"])
 
 
 MONTHS = {m: i for i, m in enumerate(
@@ -101,7 +140,7 @@ def in_period(ts: str) -> bool:
 def entry(d: dict, dates: dict[str, dict]) -> dict | None:
     """One document as the page shows it, or None if it is not in the corpus."""
     source, slug = d["source"], d["key"].rstrip("/").rsplit("/", 1)[-1]
-    base = {"agency": d["agency"], "title": title_from(d["key"]), "langs": d["languages"]}
+    base = {"agency": d["agency"], "title": hub_title(d), "langs": d["languages"]}
     if source == "wht-actions" or source == "wht-briefings":
         found = dates.get(d["key"], {})
         if found.get("status") != "found" or not found.get("in_period"):
@@ -162,6 +201,9 @@ def main() -> None:
              for line in (ROOT / "data" / "dates.jsonl").read_text().splitlines()}
 
     docs, left_out = [], Counter()
+    documents, repeats = one_per_file(documents)
+    if repeats:
+        left_out["same file in another source"] = repeats
     for d in documents:
         e = entry(d, dates)
         if e:
