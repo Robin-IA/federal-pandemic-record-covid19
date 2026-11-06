@@ -5,6 +5,16 @@ Cowork session found on 22–25 October 2026 before moving here, so nothing
 below needs to be re-surveyed. `data/pages-monthly.txt` is the page-timeline
 file it refers to.
 
+## Where the code lives (since 6 November 2026)
+
+Develop at **`Robin-IA/federal-pandemic-record-covid19`** (public). The
+`internetarchivecanada` repository is its mirror: it gets `main` with
+`git push canada main` after each merge, and serves the explorer on GitHub
+Pages. All 18 branches were copied across on 6 Nov 2026. PRs #1–#43 and the
+issues filed until then stay on the mirror, because GitHub cannot move issues
+from an organization to a personal account. Never commit or open a pull
+request on the mirror.
+
 ## Since the handoff (26 October 2026)
 
 - Repository created: `internetarchivecanada/federal-pandemic-record-covid19`,
