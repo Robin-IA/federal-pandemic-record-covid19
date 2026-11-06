@@ -8,6 +8,22 @@ preserved by the Wayback Machine.
 
 *Picking this up? → [PICKUP.md](PICKUP.md)*
 
+## Where the code lives
+
+**Develop at [Robin-IA/federal-pandemic-record-covid19](https://github.com/Robin-IA/federal-pandemic-record-covid19).**
+Branches, pull requests and new issues go there.
+[internetarchivecanada/federal-pandemic-record-covid19](https://github.com/internetarchivecanada/federal-pandemic-record-covid19)
+is the **mirror**: it receives `main` once work is merged, and its GitHub Pages
+serves the explorer at the address above. Never commit or open a pull request
+there. In a checkout, `origin` is Robin-IA and `canada` is the mirror:
+
+```bash
+git push canada main
+```
+
+Both are public, because GitHub Pages needs a public repository.
+The issues filed before 6 November 2026 stay on the mirror.
+
 Two views, both drawn from Wayback captures:
 
 - **Documents**: what CDC, HHS, the White House and other agencies published.
