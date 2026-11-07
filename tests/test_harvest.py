@@ -280,6 +280,12 @@ class Hub(unittest.TestCase):
 
 
 class Sources(unittest.TestCase):
+    def test_month_prefix_fills_either_layout(self):
+        self.assertEqual(harvest.month_prefix("www.x.gov/sites/default/files/{month}/", "2020-03"),
+                         "www.x.gov/sites/default/files/2020-03/")
+        self.assertEqual(harvest.month_prefix("x.archives.gov/wp-content/uploads/{yyyy}/{mm}/", "2020-03"),
+                         "x.archives.gov/wp-content/uploads/2020/03/")
+
     def test_sources_tsv_loads(self):
         sources = harvest.load_sources(ROOT / "build" / "sources.tsv")
         self.assertTrue(any(s["status"] == "harvested" for s in sources))

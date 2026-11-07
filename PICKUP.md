@@ -20,13 +20,6 @@ request on the mirror.
 - Repository created: `internetarchivecanada/federal-pandemic-record-covid19`,
   **public** (Robin's decision). Steps 1 and 2 of "Start here" are done: CDX and
   `advancedsearch.php` both answer directly from Robin's Mac over https.
-- A **mockup** is in `mockup/`, built by `build/mockup_data.py` from a CDX
-  sample in `data/sample/` (harvested 26 Oct 2026). CDC downloads returned 2,550
-  rows, matching the handoff. Its translation folding is a rough first pass —
-  1,363 CDC documents from 1,983 files, against 1,294 below — and is not
-  `build/languages.py`. ED and NIH are PDFs with status 200, not yet checked for
-  topic or against the corpus rule. Biden actions: 44 in range by slug keyword
-  (the handoff had 42). Trump White House items are not in yet.
 - Archive-It partner 593 is corrected below.
 - **Step 3 is done.** `build/sources.tsv` holds the table below as data, and
   `build/harvest.py` re-ran the 11 sources marked harvested, partial or retry
@@ -84,7 +77,7 @@ request on the mirror.
   in the handoff. The rule here reads more spellings than the survey's list
   did, among them `haitian-creole`, `ps`/`psaf`, `mand`, `maylay`, `amet`,
   `cape-verdean-creole`, and Kurdish, Kunama, Serbian, Tamil, Telugu and
-  Yiddish, which the mockup's list lacked. Three facts worth knowing before using the numbers:
+  Yiddish, which the first list lacked. Three facts worth knowing before using the numbers:
   - **181 of the 303 have no English file under the same name.** 58 of them
     have an untagged file of similar name in the same folder (difflib ratio
     0.8 or more), e.g. `covid19_keepbabyhealthy-arabic` beside
@@ -102,17 +95,33 @@ request on the mirror.
   (27 Oct 2026), GitHub Pages from the root of `main`. `build/build_site.py`
   writes `corpus.js` from `documents.jsonl`, `dates.jsonl` and
   `pages-monthly.txt`; `corpus.js` is committed because Pages serves it.
-  The mockup and `build/mockup_data.py` are gone. **1,839 documents**: CDC
+  **1,839 documents**: CDC
   1,259, Trump White House 232, NIH 217, Biden White House 44, ED 29, HHS 28,
   DHS 15, PHE declarations 9, CISA 6. Left out by the corpus rule: images,
   stylesheets, scripts and XML in the file folders; 76 PHE HTML pages that
   are not COVID declarations (other emergencies and list pages) plus 30 PHE
   XML, JSON and image files; 37 Trump items first captured outside the period. PHE shows two April 2021 renewals
   (`covid19-7april2021`, `covid-15april2021`), not yet checked.
-- Not run yet: the paged sources (`cdc-ncov`, `hhs-files`) and the `wp-content`
-  mirrors, which run only when named with `--source`.
+- Not run yet: the paged sources (`cdc-ncov`, `hhs-files`), which run only
+  when named with `--source`.
+- **White House uploads** (6 Nov 2026, #18, #19). One prefix query on a
+  mirror's whole `wp-content/uploads/` answers 504, so `months` mode now also
+  takes WordPress's `uploads/{yyyy}/{mm}/` layout and reads one month at a
+  time. The mirrors were captured from January 2021, so each file is dated by
+  the upload month in its path, not by its capture. Kept: Trump 17, Biden
+  163. Trump 2020-08 and Biden 2020-04 are still missing after a retry
+  (Robin-IA#2). The keyword filter over-matches four Trump files, left in on
+  purpose rather than narrowing `KEYWORDS`: the budgetary impact analyses
+  for EOs 13829, 13844 and 13882 (matched on `task-force` or
+  `suspending-entry`) and a Native American children task-force report.
+  They belong in the hand read (#34).
+- **CDX outages are failures, not empty sources** (6 Nov 2026). During an
+  outage CDX answered 200 with its "Temporarily Offline" HTML page, which
+  `parse_rows()` read as zero rows and cached as finished (phe-aspr, which
+  has 102). `fetch()` now treats an HTML body from CDX as a failure, and
+  `cdx_rows()` asks an empty answer twice before believing it.
 - Still open: whether HTML issuances (statements, press releases) belong in the
-  corpus, and whether state material is in scope. The mockup assumes federal
+  corpus, and whether state material is in scope. The explorer assumes federal
   only and links Archive-It 15784 as a companion.
 
 ## What we are building

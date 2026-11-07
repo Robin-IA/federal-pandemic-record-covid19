@@ -47,6 +47,11 @@ ISSUANCE_SOURCES = {"wht-actions", "wht-briefings", "whb-actions"}
 # "letter-to-governors-on-the-covid-19-response", in the same folder.
 PHE_COVID = re.compile(r"/pages/(covid|covdi|2019-ncov)[^/]*\.aspx$")
 PHE_SOURCES = {"phe", "phe-aspr"}
+# The archive mirrors were captured from January 2021, so a first capture there
+# says nothing about when a file was issued. WordPress files each upload under
+# the month it was made: /wp-content/uploads/2020/03/.
+UPLOAD_SOURCES = {"wh-uploads-trump", "wh-uploads-biden"}
+UPLOAD_MONTH = re.compile(r"/uploads/(20\d\d)/(\d\d)/")
 # Named like a COVID renewal but not one: covid19-7april2021 renews the opioid
 # crisis emergency (read on its 7 April 2021 capture). The COVID renewal that
 # month is covid-15april2021.
@@ -155,6 +160,12 @@ def entry(d: dict, dates: dict[str, dict]) -> dict | None:
             return None
         return base | {"type": kind(slug, ACTION_TYPES, "Presidential action"), "month": month(day),
                        "day": f"{day[:4]}-{day[4:6]}-{day[6:]}", "url": wayback(d["timestamp"], d["original"])}
+    if source in UPLOAD_SOURCES:
+        m = UPLOAD_MONTH.search(d["key"])
+        if d["mimetype"] not in FILE_TYPES or not m or not in_period(m.group(1) + m.group(2) + "01"):
+            return None
+        return base | {"type": FILE_TYPES[d["mimetype"]], "month": f"{m.group(1)}-{m.group(2)}",
+                       "url": wayback(d["timestamp"], d["original"])}
     if source in PHE_SOURCES:
         if not PHE_COVID.search(d["key"]) or slug in PHE_NOT_COVID or not in_period(d["timestamp"]):
             return None
