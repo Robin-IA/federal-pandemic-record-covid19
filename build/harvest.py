@@ -25,7 +25,8 @@ paged run understates.
 **Three ways in to an agency, measured 5 Nov 2026.** Where file names say
 COVID (CMS, VA), the folder is read and selected by keyword. Where a Drupal
 site files uploads by month (SBA; FEMA in 2020), mode `months` reads one
-small folder per month. Where names are numbers or codes (FDA's
+small folder per month; WordPress does the same under `uploads/YYYY/MM/`
+(the White House mirrors). Where names are numbers or codes (FDA's
 /media/<id>/download, OSHA3990.pdf) or COVID files sit among everything else
 (Treasury, DOL, USDA), mode `hub` takes what the agency's own COVID page, and
 the pages under it, linked to, with the link text as the title. See
@@ -67,7 +68,8 @@ TIMEOUT = 240
 RETRIES = 3
 ROW_CAP = 150_000
 CACHE_METHOD = "v1"
-MONTH = "{month}"
+MONTH = "{month}"          # Drupal: /sites/default/files/2020-03/
+YEAR_MONTH = "{yyyy}/{mm}"  # WordPress: /wp-content/uploads/2020/03/
 HUB_FLOOR = "20200101"
 # CDX can answer an empty 200 for a query that has rows (seen by dates.py,
 # 26 Oct 2026), so an empty answer is asked again, this long after, before it
@@ -124,8 +126,8 @@ def load_sources(path: Path) -> list[dict]:
         seen.add(s["code"])
         if s["mode"] not in ("prefix", "paged", "months", "hub"):
             raise ValueError(f"{s['code']}: unknown mode {s['mode']!r}")
-        if (s["mode"] == "months") != (MONTH in s["prefix"]):
-            raise ValueError(f"{s['code']}: mode months and a {MONTH} prefix go together")
+        if (s["mode"] == "months") != (MONTH in s["prefix"] or YEAR_MONTH in s["prefix"]):
+            raise ValueError(f"{s['code']}: mode months and a {MONTH} or {YEAR_MONTH} prefix go together")
         if s["select"] not in ("all", "keywords"):
             raise ValueError(f"{s['code']}: unknown select {s['select']!r}")
     return sources
@@ -304,6 +306,11 @@ def months() -> list[str]:
     return out
 
 
+def month_prefix(prefix: str, m: str) -> str:
+    """The folder for month m (YYYY-MM), in either site's layout."""
+    return prefix.replace(MONTH, m).replace(YEAR_MONTH, m.replace("-", "/"))
+
+
 def harvest_months(source: dict, cache: Path, pause: float) -> dict:
     """One prefix query per upload month, one cached file per month.
 
@@ -317,7 +324,7 @@ def harvest_months(source: dict, cache: Path, pause: float) -> dict:
         path = folder / f"month-{m}.json"
         if is_done(read_cache(path)):
             continue
-        one = source | {"prefix": source["prefix"].replace(MONTH, m)}
+        one = source | {"prefix": month_prefix(source["prefix"], m)}
         try:
             rows = cdx_rows(query(one, limit=ROW_CAP, showResumeKey="true"))
             write_cache(path, {"method": CACHE_METHOD, "rows": rows})
@@ -559,7 +566,7 @@ def clean(source: dict, rows: list[dict]) -> list[dict]:
     (see MARKUP_TAIL).
     """
     # A hub's documents live anywhere on the agency's site, not under the hub.
-    base = "" if source["mode"] == "hub" else canonical("https://" + source["prefix"].split(MONTH, 1)[0])
+    base = "" if source["mode"] == "hub" else canonical("https://" + source["prefix"].split(MONTH, 1)[0].split(YEAR_MONTH, 1)[0])
     seen: dict[str, dict] = {}
     for row in rows:
         key = canonical(row["original"])

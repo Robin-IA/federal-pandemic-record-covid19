@@ -95,5 +95,22 @@ class HubTitles(unittest.TestCase):
         self.assertEqual(d["title"], "Derechos del empleado sobre licencia laboral pagada")
 
 
+def upload(path, ts="20210301000000"):
+    key = "trumpwhitehouse.archives.gov/wp-content/uploads/" + path
+    return {"source": "wh-uploads-trump", "agency": "White House (Trump)", "key": key, "languages": [],
+            "timestamp": ts, "first_ts": ts, "mimetype": "application/pdf", "original": "https://" + key}
+
+
+class WhiteHouseUploads(unittest.TestCase):
+    def test_dated_by_the_upload_month_not_the_mirror_capture(self):
+        d = build_site.entry(upload("2020/04/Guidelines-for-Opening-Up-America-Again.pdf"), {})
+        self.assertEqual(d["month"], "2020-04")
+        self.assertIn("/web/20210301000000/", d["url"])
+
+    def test_uploads_outside_the_period_are_left_out(self):
+        self.assertIsNone(build_site.entry(upload("2019/09/Vaccine-Order.pdf"), {}))
+        self.assertIsNone(build_site.entry(upload("2023/06/Wind-Down.pdf"), {}))
+
+
 if __name__ == "__main__":
     unittest.main()

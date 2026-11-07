@@ -24,8 +24,8 @@ dhs-covid	DHS	www.dhs.gov/sites/default/files/publications/covid	prefix	statusco
 cisa-covid	CISA	www.cisa.gov/sites/default/files/publications/covid	prefix	statuscode:200	yes	all	partial	6 rows	essential-workforce guidance PDFs are not named covid*; see cisa.gov/identifying-critical-infrastructure-during-covid-19
 phe	HHS (ASPR)	www.phe.gov/emergency/news/healthactions/phe/	prefix	statuscode:200	yes	all	retry		failed twice on the network in the survey
 phe-aspr	HHS (ASPR)	aspr.hhs.gov/legal/PHE/Pages/	prefix	statuscode:200	yes	all	harvested		phe.gov moved here in 2022; renewals from January 2022 on (#17)
-wh-uploads-trump	White House (Trump)	trumpwhitehouse.archives.gov/wp-content/uploads/	prefix	mimetype:application/pdf	no	keywords	queued		whitehouse.gov prefixes answer 503; try the mirror
-wh-uploads-biden	White House (Biden)	bidenwhitehouse.archives.gov/wp-content/uploads/	prefix	mimetype:application/pdf	no	keywords	queued
+wh-uploads-trump	White House (Trump)	trumpwhitehouse.archives.gov/wp-content/uploads/{yyyy}/{mm}/	months	statuscode:200;mimetype:application/pdf	no	keywords	queued		upload-month folders; one prefix query on the whole folder answers 504 (45 index pages); dated by the month in the path
+wh-uploads-biden	White House (Biden)	bidenwhitehouse.archives.gov/wp-content/uploads/{yyyy}/{mm}/	months	statuscode:200;mimetype:application/pdf	no	keywords	queued		upload-month folders (53 index pages whole); dated by the month in the path
 cdc-ncov	CDC	www.cdc.gov/coronavirus/2019-ncov/	paged	mimetype:application/pdf	yes	all	queued	1767 pages	about 16 hours; run from a terminal under caffeinate -i
 hhs-files	HHS	www.hhs.gov/sites/default/files/	paged	mimetype:application/pdf	yes	keywords	queued	425 pages
 cms	CMS	www.cms.gov/files/document/	paged	statuscode:200;mimetype:application/pdf	yes	keywords	queued		65 pages; probe of 4 pages found 81 COVID names (#21)
@@ -38,3 +38,5 @@ osha	OSHA	www.osha.gov/coronavirus	hub		yes	all	harvested		publications are numb
 usda	USDA	www.usda.gov/coronavirus	hub		yes	all	harvested		links to rd.usda.gov and fns.usda.gov count as USDA (#26)
 fda	FDA	www.fda.gov/emergency-preparedness-and-response/coronavirus-disease-2019-covid-19	hub		yes	all	harvested		files are /media/<id>/download with no name (#28)
 treasury-cares	Treasury	home.treasury.gov/policy-issues/cares	hub		yes	all	harvested		the hub before April 2021, when it moved to policy-issues/coronavirus (#23)
+cisa-workforce	CISA	www.cisa.gov/identifying-critical-infrastructure-during-covid-19	hub		yes	all	queued		the essential critical infrastructure workforce guidance, every version; its PDFs are not named covid* (#30)
+dhs-hub	DHS	www.dhs.gov/coronavirus	hub		yes	all	queued		DHS publications about COVID whatever their file names (#29)
