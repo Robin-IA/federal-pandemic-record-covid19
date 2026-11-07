@@ -120,6 +120,17 @@ request on the mirror.
   `parse_rows()` read as zero rows and cached as finished (phe-aspr, which
   has 102). `fetch()` now treats an HTML body from CDX as a failure, and
   `cdx_rows()` asks an empty answer twice before believing it.
+- **Rebuilt 6 Nov 2026: 4,185 documents** (from 1,839), 18 agencies. New
+  since 27 Oct: Treasury 1,139, CMS 286, SBA 214, FDA 173, OSHA 171,
+  FEMA 117, VA 45, USDA 10, DOL 6 (#20–#28); White House uploads, Trump
+  +17 and Biden +163 (#18, #19); PHE declarations now 14 as HHS (ASPR),
+  with the aspr.hhs.gov renewals (#17). 110 files linked from two sources
+  are counted once. Against PR #43's test harvest, FDA has 173, not 224:
+  2 of its 32 pages still fail, and they hold most of the gap. CMS has 286,
+  not 306, with 4 of 65 pages missing. After one retry, still missing:
+  CMS 4 pages; Treasury 1 page and 11 documents; Treasury CARES 3 pages;
+  FDA 2 pages and 7 documents; OSHA and USDA 1 document each. Filed as
+  issues on Robin-IA.
 - Still open: whether HTML issuances (statements, press releases) belong in the
   corpus, and whether state material is in scope. The explorer assumes federal
   only and links Archive-It 15784 as a companion.
