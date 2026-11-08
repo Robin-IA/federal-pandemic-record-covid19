@@ -131,6 +131,14 @@ request on the mirror.
   CMS 4 pages; Treasury 1 page and 11 documents; Treasury CARES 3 pages;
   FDA 2 pages and 7 documents; OSHA and USDA 1 document each. Filed as
   issues on Robin-IA.
+- **Rebuilt 8 Nov 2026: 5,539 documents**, while `cdc-ncov` was still
+  running. CDC 1,259 → 2,275 from the 785 of 1,767 `cdc-ncov` pages read so
+  far. The DHS hub now follows /publication/ pages (#16, #17): DHS 15 → 20,
+  CISA 15 → 25, FEMA 117 → 125, FLETC 1, with no gaps. Second gap retries:
+  FDA 173 → 222; CMS, Treasury, OSHA, USDA and the CISA workforce hub
+  complete. Titles from `titles.py` (#18) are not in yet: only a 29-PDF trial
+  has run, and 3,730 file documents still carry file-name titles. Rebuild
+  again when `cdc-ncov`, the `hhs-files` retry and the full title run finish.
 - **Rebuilt 7 Nov 2026: 4,426 documents.** HHS 28 → 260 from `hhs-files`
   (#16), with 392 of its 425 CDX pages; the other 33 are queued for their
   retry after `cdc-ncov`. CISA 6 → 15 from the workforce-guidance hub (#30),
