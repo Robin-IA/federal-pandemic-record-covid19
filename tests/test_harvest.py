@@ -273,6 +273,45 @@ class Hub(unittest.TestCase):
         self.assertEqual([(r["original"], r.get("link_text")) for r in entry["rows"]],
                          [("https://www.example.gov/new.pdf", "New guidance")])
 
+    def test_named_sites_count_as_the_hubs_own(self):
+        html = '<a href="https://www.fema.gov/a.pdf">A</a> <a href="https://www.other.gov/b.pdf">B</a>'
+        self.assertEqual(sorted(harvest.doc_links(html, self.PAGE, {"fema.gov": "FEMA"})),
+                         ["https://www.fema.gov/a.pdf"])
+
+    def test_follow_links_match_the_pattern_on_allowed_sites(self):
+        html = ('<a href="/publication/notices-arrival">N</a> <a href="/publication/x/y">Deeper</a>'
+                ' <a href="https://www.cisa.gov/publication/scams?x=1">S</a>'
+                ' <a href="https://www.other.gov/publication/z">Z</a> <a href="/news/2020/03/01/a">News</a>')
+        self.assertEqual(harvest.follow_links(html, self.PAGE, harvest.HUB_FOLLOW["dhs-hub"], {"cisa.gov"}),
+                         ["https://www.cisa.gov/publication/scams",
+                          "https://www.example.gov/publication/notices-arrival"])
+
+    def test_followed_pages_add_documents_credited_to_their_component(self):
+        import tempfile
+        s = src(code="dhs-hub", agency="DHS", prefix="www.dhs.gov/coronavirus", mode="hub")
+        hub, pub = "https://www.dhs.gov/coronavirus", "https://www.dhs.gov/publication/p"
+        fema, own = "https://www.fema.gov/f.pdf", "https://www.dhs.gov/sites/default/files/p.pdf"
+        with tempfile.TemporaryDirectory() as d:
+            folder = Path(d) / "dhs-hub"
+            harvest.write_cache(folder / "_pages.json", {"pages": [["20210801000000", hub]]})
+            harvest.write_cache(harvest._hashed(folder, "page", "20210801000000" + hub),
+                                {"method": harvest.CACHE_METHOD, "links": {fema: "FEMA policy"}, "follow": [pub]})
+            harvest.write_cache(harvest._hashed(folder, "pub", pub),
+                                {"method": harvest.CACHE_METHOD, "links": {own: "DHS notice"}})
+            for url in (fema, own):
+                harvest.write_cache(harvest._hashed(folder, "doc", harvest.canonical(url)),
+                                    {"method": harvest.CACHE_METHOD, "rows": [row(url, "20200401000000")]})
+            entry = harvest.load(s, Path(d))
+        self.assertNotIn("error", entry)
+        self.assertEqual(entry["followed"], 1)
+        kept = {r["key"]: r["agency"] for r in harvest.clean(s, entry["rows"])}
+        self.assertEqual(kept, {"fema.gov/f.pdf": "FEMA", "dhs.gov/sites/default/files/p.pdf": "DHS"})
+
+    def test_hub_page_read_before_following_is_read_again(self):
+        entry = {"method": harvest.CACHE_METHOD, "links": {}}
+        self.assertTrue(harvest.page_done(entry))
+        self.assertFalse(harvest.page_done(entry, follow=True))
+
     def test_hub_documents_need_not_sit_under_the_hub(self):
         s = src(prefix="www.example.gov/coronavirus", mode="hub")
         kept = harvest.clean(s, [row("https://www.example.gov/files/guide.pdf")])

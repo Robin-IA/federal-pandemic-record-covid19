@@ -112,6 +112,18 @@ EMPTY_TEXT = re.compile(r"^(pdf|download|here|click here|english|espa[nñ]ol|spa
                         r"\W*|[\w.-]+\.(pdf|docx?|xlsx?))$", re.IGNORECASE)
 DOC_LINK = re.compile(r"(\.(pdf|docx?|xlsx?)$|/media/\d+/download$)", re.IGNORECASE)
 
+# Hubs that link out beyond their own site. DHS's COVID page links its
+# components' documents (FEMA, CISA, FLETC...) on their own sites, credited
+# here to the component; and its own documents sit one page deeper, behind
+# /publication/ pages, which are followed once. Measured on the August 2021
+# capture of www.dhs.gov/coronavirus (#29).
+HUB_SITES = {
+    "dhs-hub": {"dhs.gov": "DHS", "fema.gov": "FEMA", "cisa.gov": "CISA", "cbp.gov": "CBP",
+                "tsa.gov": "TSA", "uscis.gov": "USCIS", "ice.gov": "ICE", "fletc.gov": "FLETC",
+                "secretservice.gov": "Secret Service", "uscg.mil": "Coast Guard"},
+}
+HUB_FOLLOW = {"dhs-hub": re.compile(r"^/publication/[^/]+/?$")}
+
 
 # ---------------------------------------------------------------- sources
 
@@ -362,18 +374,31 @@ def link_text(inner: str) -> str:
     return "" if EMPTY_TEXT.match(words) else words[:300]
 
 
-def doc_links(html: str, page_url: str) -> dict[str, str]:
-    """Document links on one replayed page, made absolute, on the hub's own site only,
-    each with its link text. Where a document is linked twice the longer text wins.
-    """
-    out: dict[str, str] = {}
+def _anchors(html: str, page_url: str, sites=()):
+    """(url, parts, inner) of each http(s) link on the page's own site or one of `sites`."""
+    allowed = {site(urllib.parse.urlsplit(page_url).netloc), *sites}
     for href, inner in ANCHOR.findall(html):
         url = urllib.parse.urljoin(page_url, html_lib.unescape(href))
         # A replayed page can still carry Wayback's own prefix on its links.
         url = re.sub(r"^https?://web\.archive\.org/web/\d+(id_|im_|if_)?/", "", url)
         parts = urllib.parse.urlsplit(url)
-        if parts.scheme not in ("http", "https") or site(parts.netloc) != site(urllib.parse.urlsplit(page_url).netloc):
-            continue
+        if parts.scheme in ("http", "https") and site(parts.netloc) in allowed:
+            yield url, parts, inner
+
+
+def follow_links(html: str, page_url: str, pattern, sites=()) -> list[str]:
+    """Pages to read one level further: links whose path matches `pattern`."""
+    return sorted({urllib.parse.urlunsplit(("https", p.netloc.lower(), p.path, "", ""))
+                   for _, p, _ in _anchors(html, page_url, sites) if pattern.search(p.path)})
+
+
+def doc_links(html: str, page_url: str, sites=()) -> dict[str, str]:
+    """Document links on one replayed page, made absolute, on the hub's own site
+    (or one of `sites`), each with its link text. Where a document is linked
+    twice the longer text wins.
+    """
+    out: dict[str, str] = {}
+    for url, parts, inner in _anchors(html, page_url, sites):
         if DOC_LINK.search(parts.path):
             url = urllib.parse.urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
             text = link_text(inner)
@@ -388,9 +413,33 @@ def merge_links(into: dict[str, str], links: dict[str, str]) -> None:
             into[url] = text
 
 
-def page_done(entry: dict | None) -> bool:
+def page_done(entry: dict | None, follow: bool = False) -> bool:
     # Pages read before link text was kept cached a list; read those again.
-    return is_done(entry) and isinstance(entry.get("links"), dict)
+    # So are hub pages read before their source followed links one level.
+    return (is_done(entry) and isinstance(entry.get("links"), dict)
+            and (not follow or isinstance(entry.get("follow"), list)))
+
+
+def read_page(url: str, when: list[str], sites, pattern) -> dict:
+    """One replayed page's document links (and links to follow), trying each timestamp in turn."""
+    entry: dict = {}
+    for ts in when:
+        try:
+            html = fetch(f"https://web.archive.org/web/{ts}id_/{url}", timeout=120)
+            entry = {"method": CACHE_METHOD, "read": ts,
+                     "links": dict(sorted(doc_links(html, url, sites).items()))}
+            if pattern:
+                entry["follow"] = follow_links(html, url, pattern, sites)
+            break
+        except Exception as exc:  # noqa: BLE001
+            entry = {"error": str(exc)[:160]}
+            if not re.search(r"HTTP Error 40[34]", str(exc)):
+                break
+    return entry
+
+
+def hub_agency(source: dict, url: str) -> str:
+    return HUB_SITES.get(source["code"], {}).get(site(urllib.parse.urlsplit(url).netloc), source["agency"])
 
 
 def _hashed(folder: Path, kind: str, key: str) -> Path:
@@ -445,22 +494,27 @@ def harvest_hub(source: dict, cache: Path, pause: float) -> dict:
         except Exception as exc:  # noqa: BLE001
             return {"code": source["code"], "error": f"hub pages: {str(exc)[:120]}"}
         write_cache(meta_path, meta)
+    sites, pattern = HUB_SITES.get(source["code"], {}), HUB_FOLLOW.get(source["code"])
     links: dict[str, str] = {}
+    follow: dict[str, str] = {}
     for ts, url, *fallback in meta["pages"]:
         path = _hashed(folder, "page", ts + url)
         entry = read_cache(path)
+        if not page_done(entry, bool(pattern)):
+            entry = read_page(url, [ts, *fallback], sites, pattern)
+            write_cache(path, entry)
+            if pause:
+                time.sleep(pause)
+        merge_links(links, entry.get("links") or {})
+        for f in entry.get("follow") or []:
+            follow.setdefault(f, entry.get("read", ts))
+    # A followed page is read once, at the capture nearest the hub page that
+    # first linked it (the id_ replay redirects to the nearest), then at the end.
+    for url, ts in sorted(follow.items()):
+        path = _hashed(folder, "pub", url)
+        entry = read_cache(path)
         if not page_done(entry):
-            entry = None
-            for when in [ts, *fallback]:
-                try:
-                    html = fetch(f"https://web.archive.org/web/{when}id_/{url}", timeout=120)
-                    entry = {"method": CACHE_METHOD, "read": when,
-                             "links": dict(sorted(doc_links(html, url).items()))}
-                    break
-                except Exception as exc:  # noqa: BLE001
-                    entry = {"error": str(exc)[:160]}
-                    if not re.search(r"HTTP Error 40[34]", str(exc)):
-                        break
+            entry = read_page(url, [ts, LAST_DAY + "000000"], sites, None)
             write_cache(path, entry)
             if pause:
                 time.sleep(pause)
@@ -486,14 +540,24 @@ def load_hub(source: dict, cache: Path) -> dict:
     meta = read_cache(folder / "_pages.json")
     if not meta:
         return {"code": source["code"], "error": "never started"}
+    pattern = HUB_FOLLOW.get(source["code"])
     links: dict[str, str] = {}
+    follow: set[str] = set()
     pages_missing = 0
     for ts, url, *_ in meta["pages"]:
         entry = read_cache(_hashed(folder, "page", ts + url))
+        if page_done(entry, bool(pattern)):
+            merge_links(links, entry["links"])
+            follow.update(entry.get("follow") or [])
+        else:
+            pages_missing += 1
+    followed_missing = 0
+    for url in sorted(follow):
+        entry = read_cache(_hashed(folder, "pub", url))
         if page_done(entry):
             merge_links(links, entry["links"])
         else:
-            pages_missing += 1
+            followed_missing += 1
     # A document captured before 2020 was not published for COVID: DOL's weekly
     # claims report is linked from its hub and predates the pandemic. The hub's
     # own first capture is no floor: Treasury's dates from April 2021, after a
@@ -508,11 +572,14 @@ def load_hub(source: dict, cache: Path) -> dict:
         elif entry["rows"][0]["timestamp"] < HUB_FLOOR:
             before += 1
         else:
-            rows.append(entry["rows"][0] | ({"link_text": links[url]} if links[url] else {}))
+            row = entry["rows"][0] | ({"link_text": links[url]} if links[url] else {})
+            agency = hub_agency(source, url)
+            rows.append(row | ({"agency": agency} if agency != source["agency"] else {}))
     out = {"code": source["code"], "method": CACHE_METHOD, "rows": rows, "pages": len(meta["pages"]),
-           "linked": len(links), "not_captured_in_period": never, "before_hub": before}
+           "followed": len(follow), "linked": len(links), "not_captured_in_period": never, "before_hub": before}
     problems = [f"{n} of {total} {what} not in" for n, total, what in
-                ((pages_missing, len(meta["pages"]), "pages"), (docs_missing, len(links), "documents")) if n]
+                ((pages_missing, len(meta["pages"]), "pages"), (followed_missing, len(follow), "followed pages"),
+                 (docs_missing, len(links), "documents")) if n]
     if problems:
         out["error"] = "; ".join(problems)
     return out
@@ -581,6 +648,7 @@ def clean(source: dict, rows: list[dict]) -> list[dict]:
             seen[key] = row
     for key in [k for k in seen if well_formed(k) != k and (well_formed(k) in seen or well_formed(k) == base)]:
         del seen[key]
+    # A hub row can carry its own agency: a DHS component's document on its own site.
     return [{"source": source["code"], "agency": source["agency"], "key": k,
              "url_day": url_day(r["original"]), **r} for k, r in sorted(seen.items())]
 
