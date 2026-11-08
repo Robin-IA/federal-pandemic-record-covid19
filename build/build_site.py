@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Build the explorer's data, corpus.js, from the pipeline's outputs.
 
-Reads data/documents.jsonl (languages.py), data/dates.jsonl (dates.py) and
-data/pages-monthly.txt, and writes corpus.js beside index.html at the
+Reads data/documents.jsonl (languages.py), data/dates.jsonl (dates.py),
+data/titles-cache.jsonl (titles.py, if present) and data/pages-monthly.txt, and writes corpus.js beside index.html at the
 repository root, where GitHub Pages serves it.
 
 What goes in follows the corpus rule: every document opens as a document.
@@ -142,10 +142,39 @@ def in_period(ts: str) -> bool:
     return harvest.FIRST_DAY <= ts[:8] <= harvest.LAST_DAY
 
 
-def entry(d: dict, dates: dict[str, dict]) -> dict | None:
+def file_title(d: dict, titles: dict[str, dict]) -> dict:
+    """The title fields for a file: the document's own title where titles.py found one.
+
+    "fn" marks a title that is still the file name, so the page can say so.
+    "date" is the date printed on the first page, kept only to tell apart a
+    series whose issues share a title; one_title_each() uses it and drops it.
+    """
+    found = titles.get(d["key"], {})
+    if found.get("status") == "found":
+        return {"title": found["title"]} | ({"date": found["date"]} if found.get("date") else {})
+    title = hub_title(d)
+    return {"title": title} | ({"fn": 1} if title == title_from(d["key"]) else {})
+
+
+def one_title_each(docs: list[dict]) -> list[dict]:
+    """Add the printed date to a title its agency uses more than once.
+
+    SBA's "Disaster Assistance Update" and the White House's "COVID-19 Press
+    Briefing" title every issue alike.
+    """
+    seen = Counter((d["agency"], d["title"]) for d in docs)
+    for d in docs:
+        when = d.pop("date", None)
+        if when and seen[(d["agency"], d["title"])] > 1 and when not in d["title"]:
+            d["title"] = f"{d['title']}, {when}"
+    return docs
+
+
+def entry(d: dict, dates: dict[str, dict], titles: dict[str, dict] | None = None) -> dict | None:
     """One document as the page shows it, or None if it is not in the corpus."""
     source, slug = d["source"], d["key"].rstrip("/").rsplit("/", 1)[-1]
     base = {"agency": d["agency"], "title": hub_title(d), "langs": d["languages"]}
+    filed = base | file_title(d, titles or {})
     if source == "wht-actions" or source == "wht-briefings":
         found = dates.get(d["key"], {})
         if found.get("status") != "found" or not found.get("in_period"):
@@ -164,7 +193,7 @@ def entry(d: dict, dates: dict[str, dict]) -> dict | None:
         m = UPLOAD_MONTH.search(d["key"])
         if d["mimetype"] not in FILE_TYPES or not m or not in_period(m.group(1) + m.group(2) + "01"):
             return None
-        return base | {"type": FILE_TYPES[d["mimetype"]], "month": f"{m.group(1)}-{m.group(2)}",
+        return filed | {"type": FILE_TYPES[d["mimetype"]], "month": f"{m.group(1)}-{m.group(2)}",
                        "url": wayback(d["timestamp"], d["original"])}
     if source in PHE_SOURCES:
         if not PHE_COVID.search(d["key"]) or slug in PHE_NOT_COVID or not in_period(d["timestamp"]):
@@ -173,7 +202,7 @@ def entry(d: dict, dates: dict[str, dict]) -> dict | None:
                        "url": wayback(d["timestamp"], d["original"])}
     if d["mimetype"] not in FILE_TYPES or not in_period(d["first_ts"]):
         return None
-    return base | {"type": FILE_TYPES[d["mimetype"]], "month": month(d["first_ts"]),
+    return filed | {"type": FILE_TYPES[d["mimetype"]], "month": month(d["first_ts"]),
                    "url": wayback(d["timestamp"], d["original"])}
 
 
@@ -211,17 +240,22 @@ def main() -> None:
     dates = {json.loads(line)["key"]: json.loads(line)
              for line in (ROOT / "data" / "dates.jsonl").read_text().splitlines()}
 
+    cache = ROOT / "data" / "titles-cache.jsonl"
+    titles = {}
+    if cache.exists():
+        titles = {(r := json.loads(line))["key"]: r for line in cache.read_text(encoding="utf-8").splitlines() if line}
+
     docs, left_out = [], Counter()
     documents, repeats = one_per_file(documents)
     if repeats:
         left_out["same file in another source"] = repeats
     for d in documents:
-        e = entry(d, dates)
+        e = entry(d, dates, titles)
         if e:
             docs.append(e)
         else:
             left_out[d["source"]] += 1
-    docs = one_per_declaration(docs)
+    docs = one_title_each(one_per_declaration(docs))
     docs.sort(key=lambda d: (d["month"], d["agency"], d["title"]))
 
     fetched = max(json.loads(p.read_text())["fetched"] for p in (ROOT / "data" / "cdx-cache").glob("*.json"))
@@ -235,6 +269,9 @@ def main() -> None:
     out.write_text("window.CORPUS=" + json.dumps(data, separators=(",", ":"), ensure_ascii=False) + ";\n",
                    encoding="utf-8")
 
+    named = sum(1 for d in docs if d["type"] in FILE_TYPES.values() and not d.get("fn"))
+    print(f"  file titles: {named:,} named, {sum(1 for d in docs if d.get('fn')):,} still file names",
+          file=sys.stderr)
     for agency, n in stats["by_agency"].most_common():
         print(f"  {agency:<22} {n:>6,}", file=sys.stderr)
     print(f"  {'left out':<22} " + ", ".join(f"{s} {n}" for s, n in left_out.most_common()), file=sys.stderr)
