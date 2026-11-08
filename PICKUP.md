@@ -131,6 +131,13 @@ request on the mirror.
   CMS 4 pages; Treasury 1 page and 11 documents; Treasury CARES 3 pages;
   FDA 2 pages and 7 documents; OSHA and USDA 1 document each. Filed as
   issues on Robin-IA.
+- **Rebuilt 7 Nov 2026: 4,426 documents.** HHS 28 → 260 from `hhs-files`
+  (#16), with 392 of its 425 CDX pages; the other 33 are queued for their
+  retry after `cdc-ncov`. CISA 6 → 15 from the workforce-guidance hub (#30),
+  1 of 37 pages still missing after a retry. The DHS hub (#29) added nothing:
+  51 of its 54 captures read, and none yielded a document link, so the
+  link extraction does not fit dhs.gov's pages. `cdc-ncov` (#14) is
+  harvesting (1,767 pages, about 30 hours) and gets its own rebuild.
 - Still open: whether HTML issuances (statements, press releases) belong in the
   corpus, and whether state material is in scope. The explorer assumes federal
   only and links Archive-It 15784 as a companion.
