@@ -81,7 +81,7 @@ h1 { font: 800 clamp(28px, 5vw, 44px)/1.05 var(--display); margin: 8px 0 10px; l
 .lede { max-width: 64ch; color: var(--muted); margin: 0 }
 .lede b { color: var(--ink); font-weight: 600 }
 .stamp { margin: 10px 0 0; font: 12px var(--mono); color: var(--muted) }
-.mast .explorer-checks-note { max-width: 64ch }
+.site-foot .explorer-checks-note { max-width: 64ch }
 
 nav.tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); margin-top: 24px;
   position: sticky; top: env(safe-area-inset-top, 0px); background: var(--bg); z-index: 5 }
@@ -261,13 +261,6 @@ code { font: 13px var(--mono); background: var(--accent-soft); padding: 1px 4px;
     <h1>The Federal Pandemic Record</h1>
     <p class="lede">See what the U.S. government said about COVID-19 on its own websites, from <b>December 2019</b> until the public health emergency ended on <b>May 11, 2023</b>. The Wayback Machine saved these pages. Related collections from Democracy's Library are here too.</p>
     <p class="stamp" id="stamp"></p>
-    <!-- explorer-checks:note -->
-    <p class="explorer-checks-note" style="font-size:0.875em;margin:1em 0 0">
-      Meets WCAG 2.2 Level AA accessibility (and WCAG 2.1 AA and 2.0 AA), checked
-      <time datetime="2026-11-05">5 November 2026</time> by automated tests and manual review.
-      Also passes security and code validity checks.
-    </p>
-    <!-- /explorer-checks:note -->
   </header>
 
   <nav class="tabs" aria-label="Views">
@@ -348,6 +341,13 @@ code { font: 13px var(--mono); background: var(--accent-soft); padding: 1px 4px;
   </main>
   <footer class="site-foot">
     <p>Feedback? <a href="mailto:robin.fay@archive.org?subject=Feedback%20about%20Explorers%3A%20The%20Federal%20Pandemic%20Record">Email us</a></p>
+    <!-- explorer-checks:note -->
+    <p class="explorer-checks-note" style="font-size:0.875em;margin:1em 0 0">
+      Meets WCAG 2.2 Level AA accessibility (and WCAG 2.1 AA and 2.0 AA), checked
+      <time datetime="2026-11-05">5 November 2026</time> by automated tests and manual review.
+      Also passes security and code validity checks.
+    </p>
+    <!-- /explorer-checks:note -->
   </footer>
 </div>
 
