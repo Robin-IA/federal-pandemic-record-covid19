@@ -121,8 +121,21 @@ HUB_SITES = {
     "dhs-hub": {"dhs.gov": "DHS", "fema.gov": "FEMA", "cisa.gov": "CISA", "cbp.gov": "CBP",
                 "tsa.gov": "TSA", "uscis.gov": "USCIS", "ice.gov": "ICE", "fletc.gov": "FLETC",
                 "secretservice.gov": "Secret Service", "uscg.mil": "Coast Guard"},
+    # The cross-government portals hold few files of their own: what they
+    # published was links to each agency's. whitehouse.gov is left out, since
+    # the White House sources already cover it and the host changed hands in 2021.
+    "coronavirus-gov": {"cdc.gov": "CDC", "hhs.gov": "HHS", "fda.gov": "FDA", "nih.gov": "NIH",
+                        "fema.gov": "FEMA", "dhs.gov": "DHS", "dol.gov": "DOL", "osha.gov": "OSHA",
+                        "sba.gov": "SBA", "treasury.gov": "Treasury", "irs.gov": "IRS", "ed.gov": "ED",
+                        "usda.gov": "USDA", "va.gov": "VA", "cms.gov": "CMS", "state.gov": "State"},
+    "covid-gov": {"cdc.gov": "CDC", "hhs.gov": "HHS", "fda.gov": "FDA", "nih.gov": "NIH",
+                  "fema.gov": "FEMA", "cms.gov": "CMS", "vaccines.gov": "HHS", "covidtests.gov": "HHS"},
+    # The task force's guidance is OPM's and OMB's as much as its own.
+    "sfw": {"opm.gov": "OPM", "chcoc.gov": "OPM", "cdc.gov": "CDC"},
 }
-HUB_FOLLOW = {"dhs-hub": re.compile(r"^/publication/[^/]+/?$")}
+HUB_FOLLOW = {"dhs-hub": re.compile(r"^/publication/[^/]+/?$"),
+              # GAO's hub lists report pages; the PDF is one page deeper.
+              "gao-covid": re.compile(r"^/products/gao-\d{2}-\d+[a-z]*/?$", re.IGNORECASE)}
 
 
 # ---------------------------------------------------------------- sources

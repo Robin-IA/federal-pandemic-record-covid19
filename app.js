@@ -138,7 +138,13 @@ const NAMES = { cdc_home: "CDC COVID-19 home", cdc_masks: "Cloth face coverings"
   cdc_quarantine: "Quarantine", cdc_quarantine2: "Quarantine and isolation", cdc_symptoms: "Symptoms", cdc_cases: "Cases in the U.S.",
   cdc_uptodate: "Stay up to date with vaccines", cdc_schools0: "Schools: operational strategy", cdc_schools: "K-12 guidance", cdc_travel: "Travelers",
   cdc_risk: "People at increased risk", coronavirus_gov: "coronavirus.gov", covid_gov: "covid.gov", covidtests_gov: "covidtests.gov",
-  vaccines_gov: "vaccines.gov", phe_decl: "PHE declaration", cisa_covid: "CISA coronavirus", fema_covid: "FEMA coronavirus" };
+  vaccines_gov: "vaccines.gov", phe_decl: "PHE declaration", cisa_covid: "CISA coronavirus", fema_covid: "FEMA coronavirus",
+  wh_trump_opening: "Opening Up America Again", wh_biden_covid: "White House COVID-19 plan", state_travel: "State Department travel information",
+  osha_covid: "OSHA coronavirus", hhs_covid: "HHS coronavirus", nih_covid: "NIH coronavirus", fda_covid: "FDA coronavirus",
+  cdc_tracker: "CDC COVID Data Tracker", cdc_vaccines: "CDC COVID-19 vaccines", cdc_espanol: "CDC COVID-19 home in Spanish",
+  irs_eip: "IRS Economic Impact Payments", sba_ppp: "SBA Paycheck Protection Program (2020)", sba_ppp2: "SBA Paycheck Protection Program (2021 on)",
+  hhs_ows: "Operation Warp Speed", nih_activ: "NIH ACTIV trials", covid19_nih: "covid19.nih.gov", combatcovid: "combatcovid.hhs.gov",
+  sfw: "Safer Federal Workforce" };
 function spark(p) {
   const W = 260, H = 44, bw = W / MONTHS.length, byM = Object.fromEntries(p.months.map(x => [x.m, x]));
   const vmax = Math.max(...p.months.map(x => x.v)), kmax = p.peak || 1; let s = "", pts = [];
