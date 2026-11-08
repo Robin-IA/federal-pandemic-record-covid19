@@ -353,6 +353,7 @@ build/sources.tsv          agency, prefix, mode (prefix|paged|months|hub), filte
 build/harvest.py           CDX per source → data/cdx-cache/ (raw rows, resumable, failures recorded)
 build/dates.py             exact-URL first-capture lookups (Trump WH items), URL dates (Biden)
 build/languages.py         translation folding + tests
+build/titles.py            a PDF's own title (Title field, else first-page heading) + tests
 build/classify.py          slug → title, doc type (EO, proclamation, memo, guidance, fact sheet,
                            poster, checklist, FAQ, toolkit, transcript, form), topics
 build/pages.py             key-page monthly timelines → payload/pages/<key>.json

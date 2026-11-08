@@ -50,6 +50,14 @@ python3 build/languages.py
 ```
 
 ```bash
+python3 build/titles.py
+```
+
+`titles.py` reads each PDF still titled from its file name from Wayback, about
+2,700, so it is the slow step: run it when no harvest is running. It resumes
+where it stopped, and `build_site.py` works without it.
+
+```bash
 python3 build/build_site.py
 ```
 

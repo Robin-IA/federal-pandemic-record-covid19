@@ -7,3 +7,5 @@ data/*.log
 data/dates-cache.jsonl
 data/dates.jsonl
 data/documents.jsonl
+data/titles-cache.jsonl
+data/*.done
