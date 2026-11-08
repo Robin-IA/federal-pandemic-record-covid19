@@ -438,6 +438,17 @@ def read_page(url: str, when: list[str], sites, pattern) -> dict:
     return entry
 
 
+def last_good(url: str) -> str | None:
+    """Timestamp of a page's last 200 capture inside the period, or None."""
+    params = [("url", url), ("from", FROM), ("to", TO), ("filter", "statuscode:200"),
+              ("limit", "-1"), ("fl", ",".join(FIELDS))]
+    try:
+        rows = cdx_rows(f"{CDX}?{urllib.parse.urlencode(params)}")
+    except Exception:  # noqa: BLE001
+        return None
+    return rows[-1]["timestamp"] if rows else None
+
+
 def hub_agency(source: dict, url: str) -> str:
     return HUB_SITES.get(source["code"], {}).get(site(urllib.parse.urlsplit(url).netloc), source["agency"])
 
@@ -515,6 +526,13 @@ def harvest_hub(source: dict, cache: Path, pause: float) -> dict:
         entry = read_cache(path)
         if not page_done(entry):
             entry = read_page(url, [ts, LAST_DAY + "000000"], sites, None)
+            # A page linked only from a late hub capture can be gone by then
+            # (CISA's TIC 3.0 telework guidance: 200 until Dec 2021, 404 by
+            # 2023), so the replay at either date is the 404 Wayback captured.
+            if re.search(r"HTTP Error 40[34]", entry.get("error", "")):
+                good = last_good(url)
+                if good:
+                    entry = read_page(url, [good], sites, None)
             write_cache(path, entry)
             if pause:
                 time.sleep(pause)
