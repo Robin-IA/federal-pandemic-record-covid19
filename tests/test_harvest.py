@@ -307,6 +307,36 @@ class Hub(unittest.TestCase):
         kept = {r["key"]: r["agency"] for r in harvest.clean(s, entry["rows"])}
         self.assertEqual(kept, {"fema.gov/f.pdf": "FEMA", "dhs.gov/sites/default/files/p.pdf": "DHS"})
 
+    def test_followed_page_gone_by_the_late_capture_is_read_at_its_last_good_one(self):
+        import tempfile
+        import urllib.error
+        from unittest import mock
+        s = src(code="dhs-hub", agency="DHS", prefix="www.dhs.gov/coronavirus", mode="hub")
+        hub, pub = "https://www.dhs.gov/coronavirus/sub", "https://www.cisa.gov/publication/tic"
+        doc = "https://www.cisa.gov/sites/default/files/tic.pdf"
+
+        def fetch(url, timeout=None):
+            if "/web/20211222133246id_/" in url:
+                return f'<a href="{doc}">TIC 3.0</a>'
+            raise urllib.error.HTTPError(url, 404, "Not Found", {}, None)
+
+        def cdx_rows(url):
+            return [row(pub, "20211222133246")] if "statuscode" in url and "tic" in url and "limit=-1" in url \
+                else [row(doc, "20200413000000")]
+
+        with tempfile.TemporaryDirectory() as d, \
+                mock.patch.object(harvest, "fetch", fetch), mock.patch.object(harvest, "cdx_rows", cdx_rows):
+            folder = Path(d) / "dhs-hub"
+            harvest.write_cache(folder / "_pages.json", {"pages": [["20230511000000", hub]]})
+            harvest.write_cache(harvest._hashed(folder, "page", "20230511000000" + hub),
+                                {"method": harvest.CACHE_METHOD, "read": "20230511000000",
+                                 "links": {}, "follow": [pub]})
+            entry = harvest.harvest_hub(s, Path(d), 0)
+            cached = harvest.read_cache(harvest._hashed(folder, "pub", pub))
+        self.assertEqual(cached["read"], "20211222133246")
+        self.assertNotIn("error", entry)
+        self.assertEqual([r["original"] for r in entry["rows"]], [doc])
+
     def test_hub_page_read_before_following_is_read_again(self):
         entry = {"method": harvest.CACHE_METHOD, "links": {}}
         self.assertTrue(harvest.page_done(entry))
