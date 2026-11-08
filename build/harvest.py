@@ -394,7 +394,7 @@ def page_done(entry: dict | None) -> bool:
 
 
 def _hashed(folder: Path, kind: str, key: str) -> Path:
-    return folder / f"{kind}-{hashlib.sha1(key.encode()).hexdigest()[:16]}.json"
+    return folder / f"{kind}-{hashlib.sha1(key.encode(), usedforsecurity=False).hexdigest()[:16]}.json"
 
 
 def hub_pages(source: dict) -> list[tuple[str, str]]:
