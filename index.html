@@ -67,6 +67,15 @@ header.mast > :not(.mast-art) { position: relative }
 .mast-art .dot, .mark .dot { fill: currentColor; stroke: none }
 @media (max-width: 1000px) { .mast-art { display: none } }
 .mark { width: 18px; height: 18px; vertical-align: -5px; margin-right: 6px; color: var(--mast-art) }
+/* Internet Archive and Democracy's Library logos, in the dark band. The IA
+   logo is white on transparent; the DL logo is black on white, kept as a tile. */
+.mast-logos { display: flex; gap: 12px; align-items: center; margin-bottom: 14px }
+.mast-logos a { display: inline-flex; border-radius: 6px }
+.mast-logos img { display: block; width: 40px; height: 40px }
+.mast-logos .dl { border-radius: 6px; background: #fff }
+footer.site-foot { padding: 20px 32px 0; color: var(--muted); font-size: 14px }
+footer.site-foot p { margin: 0 }
+@media (max-width: 520px) { footer.site-foot { padding-inline: 18px } }
 .eyebrow { font: 600 12px/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
 h1 { font: 800 clamp(28px, 5vw, 44px)/1.05 var(--display); margin: 8px 0 10px; letter-spacing: -.01em; text-wrap: balance }
 .lede { max-width: 64ch; color: var(--muted); margin: 0 }
@@ -244,6 +253,10 @@ code { font: 13px var(--mono); background: var(--accent-soft); padding: 1px 4px;
       </g></symbol>
     </svg>
     <img class="mast-art" src="img/sars-cov-2-cdc.webp" width="418" height="420" alt="">
+    <div class="mast-logos">
+      <a href="https://archive.org/"><img src="img/internet-archive.png" alt="Internet Archive" width="40" height="40"></a>
+      <a href="https://archive.org/details/democracys-library"><img class="dl" src="img/democracys-library.png" alt="Democracy's Library" width="40" height="40"></a>
+    </div>
     <div class="eyebrow"><svg class="mark" aria-hidden="true" focusable="false"><use href="#virion"/></svg>Internet Archive · Democracy's Library</div>
     <h1>The Federal Pandemic Record</h1>
     <p class="lede">See what the U.S. government said about COVID-19 on its own websites, from <b>December 2019</b> until the public health emergency ended on <b>May 11, 2023</b>. The Wayback Machine saved these pages. Related collections from Democracy's Library are here too.</p>
@@ -328,6 +341,9 @@ code { font: 13px var(--mono); background: var(--accent-soft); padding: 1px 4px;
     <p>When President Biden took office on January 20, 2021, President Trump's White House website moved to a new address, <i>trumpwhitehouse.archives.gov</i>. Copies saved after the move show when the page moved, not when the document came out. So each Trump White House document is dated by the first time it was saved from the White House website, before the move.</p>
   </section>
   </main>
+  <footer class="site-foot">
+    <p>Feedback? <a href="mailto:robin.fay@archive.org?subject=Feedback%20about%20Explorers%3A%20The%20Federal%20Pandemic%20Record">Email us</a></p>
+  </footer>
 </div>
 
 <script src="corpus.js"></script>
