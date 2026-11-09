@@ -18,7 +18,9 @@ Neither is a guess: a document where both fail keeps its file-name title,
 and build_site.py marks it as one. Tried on 30 sampled PDFs, 8 Nov 2026:
 about three in four of those Wayback served gave a real title.
 
-Hub documents keep their link text, which the agency wrote to name them.
+Hub documents keep their link text, which the agency wrote to name them,
+unless it names only a format: GAO links every report as "Full Report (14
+pages)" or "Highlights Page", so those are read here too (--source gao-covid).
 
 Results are cached in data/titles-cache.jsonl, one line per attempt, last line
 wins, so a run can stop at any point and resume. Statuses:
@@ -162,7 +164,7 @@ def title_of(data: bytes, key: str) -> dict:
         return {"status": "none"}
     # A series titles every issue alike ("COVID-19 Press Briefing"); the date
     # printed on the first page is kept so build_site.py can tell them apart.
-    return found | ({"date": when.group(0)} if when else {})
+    return found | ({"date": " ".join(when.group(0).split())} if when else {})
 
 
 def fetch(d: dict) -> bytes:
@@ -186,10 +188,12 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--limit", type=int, help="read at most this many documents")
     ap.add_argument("--pause", type=float, default=2.0, help="seconds between requests")
+    ap.add_argument("--source", action="append", default=[], help="read only this source (repeatable)")
     args = ap.parse_args()
 
     documents = [json.loads(line) for line in (ROOT / "data" / "documents.jsonl").read_text().splitlines()]
-    documents = [d for d in documents if needs_title(d) and build_site.entry(d, {})]
+    documents = [d for d in documents if needs_title(d) and build_site.entry(d, {})
+                 and (not args.source or d["source"] in args.source)]
     cache = load_cache()
     todo = [d for d in documents if cache.get(d["key"], {}).get("status") in (None, "error")]
     print(f"{len(documents):,} PDFs in the corpus titled from file names, {len(todo):,} to read",

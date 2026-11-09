@@ -131,6 +131,20 @@ request on the mirror.
   CMS 4 pages; Treasury 1 page and 11 documents; Treasury CARES 3 pages;
   FDA 2 pages and 7 documents; OSHA and USDA 1 document each. Filed as
   issues on Robin-IA.
+- **Rebuilt 9 Nov 2026: 6,534 documents.** `cdc-ncov` finished: CDC 2,275 →
+  2,672, with 27 of 1,767 CDX pages still missing after one retry (#23; the 29
+  pages the retry recovered were all empty). `hhs-files` complete (#9 closed).
+  The ten hubs from #20 are in: GAO 487, IRS 25, Safer Federal Workforce 10,
+  and combatcovid, Operation Warp Speed, covid.gov and covid19.nih.gov under
+  HHS and NIH. GAO follows
+  only GAO-20 to GAO-23 report pages: its hub also links 292 "prior work"
+  pages from 2002-2019 (638 documents), which were left out. GAO's link text
+  names a format ("Full Report (14 pages)"), so `build_site.py` treats it as
+  no title and `titles.py --source gao-covid` read the PDFs: 468 titled, 14
+  unreadable captures keep file names. Both SBA relief hubs are a JavaScript
+  shell with no links (#21); coronavirus.gov links no files. Seven hub
+  sub-pages are unread (#22). The full title run (about 4,100 PDFs) has not
+  run yet.
 - **Rebuilt 8 Nov 2026: 5,539 documents**, while `cdc-ncov` was still
   running. CDC 1,259 → 2,275 from the 785 of 1,767 `cdc-ncov` pages read so
   far. The DHS hub now follows /publication/ pages (#16, #17): DHS 15 → 20,

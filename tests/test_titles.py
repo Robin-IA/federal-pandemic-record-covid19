@@ -88,6 +88,15 @@ class BuildSite(unittest.TestCase):
         self.assertEqual(e["title"], "Consolidated forecasts hosp 2023 03 13")
         self.assertEqual(e["fn"], 1)
 
+    def test_a_format_label_is_not_a_title(self):
+        d = self.DOC | {"source": "gao-covid", "key": "gao.gov/assets/gao-21-387.pdf",
+                        "original": "https://www.gao.gov/assets/gao-21-387.pdf"}
+        for text in ["Full Report (14 pages)", "Highlights Page (1 page)", "Accessible PDF (48 pages)", "View Report"]:
+            self.assertEqual(build_site.hub_title(d | {"link_text": text}), "Gao 21 387", text)
+            self.assertTrue(titles.needs_title(d | {"link_text": text}), text)
+        self.assertEqual(build_site.hub_title(d | {"link_text": "Highlights of the CARES Act"}),
+                         "Highlights of the CARES Act")
+
     def test_a_shared_title_takes_its_printed_date(self):
         docs = [{"agency": "White House (Biden)", "title": "COVID-19 Press Briefing", "date": "June 8, 2021"},
                 {"agency": "White House (Biden)", "title": "COVID-19 Press Briefing", "date": "June 17, 2021"},
