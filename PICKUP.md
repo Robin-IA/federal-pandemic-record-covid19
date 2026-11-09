@@ -362,6 +362,7 @@ build/harvest.py           CDX per source → data/cdx-cache/ (raw rows, resumab
 build/dates.py             exact-URL first-capture lookups (Trump WH items), URL dates (Biden)
 build/languages.py         translation folding + tests
 build/titles.py            a PDF's own title (Title field, else first-page heading) + tests
+build/pages.py             key-page timelines from build/pages.tsv → data/pages-monthly.txt + tests
 build/classify.py          slug → title, doc type (EO, proclamation, memo, guidance, fact sheet,
                            poster, checklist, FAQ, toolkit, transcript, form), topics
 build/pages.py             key-page monthly timelines → payload/pages/<key>.json

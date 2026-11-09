@@ -57,6 +57,13 @@ python3 build/titles.py
 2,700, so it is the slow step: run it when no harvest is running. It resumes
 where it stopped, and `build_site.py` works without it.
 
+The "Pages over time" view reads `data/pages-monthly.txt`. To add a page,
+list it in `build/pages.tsv` and measure it; pages already measured are kept:
+
+```bash
+python3 build/pages.py
+```
+
 ```bash
 python3 build/build_site.py
 ```

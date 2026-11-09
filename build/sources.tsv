@@ -40,3 +40,13 @@ fda	FDA	www.fda.gov/emergency-preparedness-and-response/coronavirus-disease-2019
 treasury-cares	Treasury	home.treasury.gov/policy-issues/cares	hub		yes	all	harvested		the hub before April 2021, when it moved to policy-issues/coronavirus (#23)
 cisa-workforce	CISA	www.cisa.gov/identifying-critical-infrastructure-during-covid-19	hub		yes	all	queued		the essential critical infrastructure workforce guidance, every version; its PDFs are not named covid* (#30)
 dhs-hub	DHS	www.dhs.gov/coronavirus	hub		yes	all	queued		DHS publications about COVID whatever their file names (#29)
+irs-covid	IRS	www.irs.gov/coronavirus	hub		yes	all	queued		Economic Impact Payments, tax relief: notices, FAQs and forms linked from the hub
+ows	HHS	www.hhs.gov/coronavirus/explaining-operation-warp-speed	hub		yes	all	queued		Operation Warp Speed fact sheets and timelines
+sba-relief-2020	SBA	www.sba.gov/funding-programs/loans/coronavirus-relief-options	hub		yes	all	queued		PPP, EIDL and the other relief programs, 2020 address; gives SBA's files their link text
+sba-relief	SBA	www.sba.gov/funding-programs/loans/covid-19-relief-options	hub		yes	all	queued		the same, from March 2021
+sfw	Safer Federal Workforce	www.saferfederalworkforce.gov	hub		yes	all	queued		federal workplace guidance from May 2021: masks, testing, vaccination
+gao-covid	GAO	www.gao.gov/coronavirus	hub		yes	all	queued		GAO's COVID-19 oversight reports, behind /products/ pages
+coronavirus-gov	CDC	www.coronavirus.gov	hub		yes	all	queued		the 2020 cross-government portal; its links are credited to each agency
+covid-gov	HHS	www.covid.gov	hub		yes	all	queued		the 2022 portal; its links are credited to each agency
+covid19-nih	NIH	covid19.nih.gov	hub		yes	all	queued		NIH's COVID-19 research site
+combatcovid	HHS	combatcovid.hhs.gov	hub		yes	all	queued		treatments, plasma donation and clinical trials
