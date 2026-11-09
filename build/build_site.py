@@ -76,6 +76,11 @@ def title_from(key: str) -> str:
 LANGUAGE_WORDS = set(languages.NAMES) | languages.QUALIFIERS | {"language", "version", "creole", "-", "/"}
 URLISH = re.compile(r"^(https?://|www\.)|\.(gov|com|org)/", re.IGNORECASE)
 MEDIA_ID = re.compile(r"/media/(\d+)/download$")
+# Link text that names a format, not a document: GAO's report pages link every
+# file as "Full Report (14 pages)", "Highlights Page (1 page)", "Accessible PDF".
+FORMAT_ONLY = re.compile(
+    r"^(full report|highlights( page)?|view (the )?report|view a summary|accessible (pdf|text|version)|"
+    r"download print version)( \(\d+ pages?\))?$", re.IGNORECASE)
 
 
 def one_per_file(documents: list[dict]) -> tuple[list[dict], int]:
@@ -105,7 +110,7 @@ def hub_title(d: dict) -> str:
     """
     text = d.get("link_text", "")
     words = re.findall(r"[\w/-]+", text.lower())
-    if text and not URLISH.search(text) and not set(words) <= LANGUAGE_WORDS:
+    if text and not URLISH.search(text) and not FORMAT_ONLY.match(text) and not set(words) <= LANGUAGE_WORDS:
         return text
     m = MEDIA_ID.search(d["key"])
     return f"{d['agency']} document {m.group(1)}" if m else title_from(d["key"])
@@ -151,7 +156,7 @@ def file_title(d: dict, titles: dict[str, dict]) -> dict:
     """
     found = titles.get(d["key"], {})
     if found.get("status") == "found":
-        return {"title": found["title"]} | ({"date": found["date"]} if found.get("date") else {})
+        return {"title": found["title"]} | ({"date": " ".join(found["date"].split())} if found.get("date") else {})
     title = hub_title(d)
     return {"title": title} | ({"fn": 1} if title == title_from(d["key"]) else {})
 

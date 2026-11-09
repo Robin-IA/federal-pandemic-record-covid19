@@ -348,6 +348,13 @@ class Hub(unittest.TestCase):
         self.assertEqual([k["key"] for k in kept], ["example.gov/files/guide.pdf"])
 
 
+    def test_gao_follows_only_pandemic_era_reports(self):
+        follow = harvest.HUB_FOLLOW["gao-covid"]
+        self.assertTrue(follow.search("/products/gao-21-387"))
+        self.assertTrue(follow.search("/products/GAO-20-625"))
+        self.assertFalse(follow.search("/products/gao-07-652"))
+        self.assertFalse(follow.search("/products/gao-19-122"))
+
 class Sources(unittest.TestCase):
     def test_month_prefix_fills_either_layout(self):
         self.assertEqual(harvest.month_prefix("www.x.gov/sites/default/files/{month}/", "2020-03"),

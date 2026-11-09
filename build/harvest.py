@@ -134,8 +134,11 @@ HUB_SITES = {
     "sfw": {"opm.gov": "OPM", "chcoc.gov": "OPM", "cdc.gov": "CDC"},
 }
 HUB_FOLLOW = {"dhs-hub": re.compile(r"^/publication/[^/]+/?$"),
-              # GAO's hub lists report pages; the PDF is one page deeper.
-              "gao-covid": re.compile(r"^/products/gao-\d{2}-\d+[a-z]*/?$", re.IGNORECASE)}
+              # GAO's hub lists report pages; the PDF is one page deeper. Only
+              # GAO-20 to GAO-23: the hub also links its "prior work", 292 report
+              # pages from 2002-2019 (avian flu, TARP, the Recovery Act), which
+              # are context for the pandemic, not federal communication during it.
+              "gao-covid": re.compile(r"^/products/gao-2[0-3]-\d+[a-z]*/?$", re.IGNORECASE)}
 
 
 # ---------------------------------------------------------------- sources
@@ -579,7 +582,9 @@ def load_hub(source: dict, cache: Path) -> dict:
         entry = read_cache(_hashed(folder, "page", ts + url))
         if page_done(entry, bool(pattern)):
             merge_links(links, entry["links"])
-            follow.update(entry.get("follow") or [])
+            # Re-applied, so a narrowed pattern also narrows what is cached.
+            follow.update(u for u in entry.get("follow") or []
+                          if not pattern or pattern.search(urllib.parse.urlsplit(u).path))
         else:
             pages_missing += 1
     followed_missing = 0
