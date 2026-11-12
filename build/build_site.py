@@ -156,7 +156,8 @@ def file_title(d: dict, titles: dict[str, dict]) -> dict:
     """
     found = titles.get(d["key"], {})
     if found.get("status") == "found":
-        return {"title": found["title"]} | ({"date": " ".join(found["date"].split())} if found.get("date") else {})
+        return ({"title": found["title"], "fname": title_from(d["key"])}
+                | ({"date": " ".join(found["date"].split())} if found.get("date") else {}))
     title = hub_title(d)
     return {"title": title} | ({"fn": 1} if title == title_from(d["key"]) else {})
 
@@ -166,12 +167,20 @@ def one_title_each(docs: list[dict]) -> list[dict]:
 
     SBA's "Disaster Assistance Update" and the White House's "COVID-19 Press
     Briefing" title every issue alike.
+
+    A title shared three or more times with no date to tell the files apart is
+    a series name, not each one's: NIH set every chapter of its treatment
+    guidelines to "Coronavirus Disease 2019 (COVID-19) Treatment Guidelines".
+    Those take their file names, which do differ.
     """
     seen = Counter((d["agency"], d["title"]) for d in docs)
     for d in docs:
-        when = d.pop("date", None)
-        if when and seen[(d["agency"], d["title"])] > 1 and when not in d["title"]:
+        when, fname = d.pop("date", None), d.pop("fname", None)
+        shared = seen[(d["agency"], d["title"])]
+        if when and shared > 1 and when not in d["title"]:
             d["title"] = f"{d['title']}, {when}"
+        elif not when and fname and shared >= 3:
+            d["title"] = fname
     return docs
 
 

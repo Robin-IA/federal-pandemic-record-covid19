@@ -53,8 +53,10 @@ python3 build/languages.py
 python3 build/titles.py
 ```
 
-`titles.py` reads each PDF still titled from its file name from Wayback, about
-2,700, so it is the slow step: run it when no harvest is running. It resumes
+`titles.py` needs `pypdf`, and `cryptography` for PDFs encrypted with an
+empty password (`pip install pypdf cryptography`). It reads each PDF still
+titled from its file name from Wayback, about
+4,600 (a full run took about 5 hours, 9 Nov 2026), so it is the slow step: run it when no harvest is running. It resumes
 where it stopped, and `build_site.py` works without it.
 
 The "Pages over time" view reads `data/pages-monthly.txt`. To add a page,

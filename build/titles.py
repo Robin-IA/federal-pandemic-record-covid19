@@ -32,6 +32,7 @@ wins, so a run can stop at any point and resume. Statuses:
 from __future__ import annotations
 
 import argparse
+import gzip
 import io
 import json
 import logging
@@ -53,7 +54,14 @@ MAX_BYTES = 40 * 1024 * 1024
 GENERIC = re.compile(
     r"^(untitled|title|document\d*|slide \d+|powerpoint presentation|presentation|"
     r"coronavirus disease 2019 \(covid-19\)( factsheet| fact sheet)?|covid-19|"
-    r"fact ?sheet|memorandum|word document|pdf|cover page|draft|r graphics output)$", re.IGNORECASE)
+    r"fact ?sheet|memorandum|word document|pdf|cover page|draft|r graphics output|see schedule|"
+    # COVIDView's weekly issues carry the name of their first chart.
+    r"pneumonia and influenza mortality)$", re.IGNORECASE)
+# A heading that is a table's first column: CDC's county data run "National",
+# "Alabama", "Autauga County, Alabama" together.
+TABLE = re.compile(r"alabama\W*(autauga|alaska)|(county, [a-z ]+){3}|(new deaths.*){3}", re.IGNORECASE)
+# A video transcript's subtitle cues: "00:00:08,189 --> 00:00:08,910".
+CUES = re.compile(r"\d\d:\d\d:\d\d|-->")
 EDITOR = re.compile(r"^(microsoft (word|powerpoint|excel) - |adobe |untitled)", re.IGNORECASE)
 FILEISH = re.compile(r"\.(docx?|pdf|pptx?|xlsx?|indd|ai)\b|^[\w.-]+$", re.IGNORECASE)
 # A heading made only of these is a page furniture, not a title.
@@ -102,7 +110,8 @@ def usable(title: str, key: str) -> bool:
     letters = sum(c.isalpha() for c in t)
     if letters < 6 or len(t.split()) < 2 or len(re.findall(r"[^\W\d_]{3,}", t)) < 2:
         return False
-    if GENERIC.match(t) or EDITOR.match(t) or FURNITURE.match(t) or GLYPH_IDS.search(t):
+    if GENERIC.match(t) or EDITOR.match(t) or FURNITURE.match(t) or GLYPH_IDS.search(t) \
+            or TABLE.search(t) or CUES.search(t):
         return False
     if " " not in t.strip() or (FILEISH.search(t) and not re.search(r"\s\w+\s", t)):
         return False
@@ -135,13 +144,32 @@ def page_heading(page) -> str:
 
     page.extract_text(visitor_text=visit)
     for size in sorted({s for s, _, _ in runs}, reverse=True)[:4]:
-        parts = [t for s, _, t in sorted((r for r in runs if r[0] == size), key=lambda r: r[1])]
-        lines = [tidy(x) for x in re.split(r"\n", "".join(parts)) if tidy(x)]
-        lines = [x for x in lines if not FURNITURE.match(x)]
-        text = tidy(" ".join(lines))
+        text = tidy(" ".join(heading_lines([(y, t) for s, y, t in runs if s == size], size)))
         if sum(c.isalpha() for c in text) >= 6:
             return text
     return ""
+
+
+def heading_lines(runs: list[tuple[float, str]], size: float) -> list[str]:
+    """The first block of lines in one type size, top down.
+
+    Runs at one height are one line, joined as they are; lines are joined with
+    a space ("Coronavirus Disease 2019 (COVID-19)" / "Treatment Guidelines").
+    A gap of more than twice the type size ends the title: below it, the same
+    size is the next heading (COVIDView's "Virus", "Severe Disease").
+    """
+    rows: dict[float, list[str]] = {}
+    for y, text in runs:
+        rows.setdefault(round(y), []).append(text)
+    lines, last = [], None
+    for y in sorted(rows):
+        if last is not None and y - last > 2 * size and lines:
+            break
+        for line in re.split(r"\n", "".join(rows[y])):
+            if tidy(line) and not FURNITURE.match(tidy(line)):
+                lines.append(tidy(line))
+        last = y
+    return lines
 
 
 def title_of(data: bytes, key: str) -> dict:
@@ -159,7 +187,7 @@ def title_of(data: bytes, key: str) -> dict:
         heading = page_heading(first)
         # Longer than a heading: the largest type was the body, as on a PSA script.
         if usable(heading, key) and len(heading.split()) <= 20:
-            found = {"status": "found", "from": "page", "title": heading}
+            found = {"status": "found", "from": "page", "title": heading, "v": 2}
     if not found or says_less(found["title"], key):
         return {"status": "none"}
     # A series titles every issue alike ("COVID-19 Press Briefing"); the date
@@ -173,6 +201,8 @@ def fetch(d: dict) -> bytes:
         data = r.read(MAX_BYTES + 1)
     if len(data) > MAX_BYTES:
         raise ValueError("larger than 40 MB")
+    if data.startswith(b"\x1f\x8b"):  # a capture stored gzipped, as served
+        data = gzip.decompress(data)
     if not data.startswith(b"%PDF"):
         raise ValueError("not a PDF: " + data[:40].decode("latin-1", "replace"))
     return data
@@ -192,10 +222,16 @@ def main() -> None:
     args = ap.parse_args()
 
     documents = [json.loads(line) for line in (ROOT / "data" / "documents.jsonl").read_text().splitlines()]
+    # Only the copy build_site.py keeps: a file two sources found is read once.
+    documents, _ = build_site.one_per_file(documents)
     documents = [d for d in documents if needs_title(d) and build_site.entry(d, {})
                  and (not args.source or d["source"] in args.source)]
     cache = load_cache()
-    todo = [d for d in documents if cache.get(d["key"], {}).get("status") in (None, "error")]
+    # A title found before a rule was added is read again if the rule now rejects it.
+    todo = [d for d in documents if cache.get(d["key"], {}).get("status") in (None, "error")
+            or (cache[d["key"]]["status"] == "found" and not usable(cache[d["key"]]["title"], d["key"]))
+            # Headings read before heading_lines() ran their lines together.
+            or (cache[d["key"]].get("from") == "page" and cache[d["key"]].get("v", 1) < 2)]
     print(f"{len(documents):,} PDFs in the corpus titled from file names, {len(todo):,} to read",
           file=sys.stderr)
     with CACHE.open("a", encoding="utf-8") as sink:

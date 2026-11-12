@@ -33,6 +33,12 @@ class Usable(unittest.TestCase):
                   "Microsoft Word - memo final.docx", "PowerPoint Presentation", "Untitled"]:
             self.assertFalse(titles.usable(t, KEY), t)
 
+    def test_tables_cues_and_chart_names(self):
+        for t in ["NationalAlabamaAutauga County, AlabamaBaldwin County, Alabama",
+                  "Script | 2021 00:00:08,189 --> 00:00:08,910 Live", "PNEUMONIA AND INFLUENZA MORTALITY",
+                  "See schedule"]:
+            self.assertFalse(titles.usable(t, KEY), t)
+
     def test_page_furniture_and_glyphs(self):
         for t in ["Page 3 of 12", "1-800-321-6742", "LI I fl LI", "04/23/2020"]:
             self.assertFalse(titles.usable(t, KEY), t)
@@ -50,6 +56,18 @@ class Tidy(unittest.TestCase):
         t = titles.tidy("word " * 60)
         self.assertLessEqual(len(t), 201)
         self.assertTrue(t.endswith("…"))
+
+
+class HeadingLines(unittest.TestCase):
+    def test_lines_join_with_a_space_and_a_gap_ends_the_title(self):
+        runs = [(-700, "Coronavirus Disease 2019 (COVID-19)"), (-680, "Treatment "), (-680, "Guidelines"),
+                (-500, "Severe Disease")]
+        self.assertEqual(titles.heading_lines(runs, 18),
+                         ["Coronavirus Disease 2019 (COVID-19)", "Treatment Guidelines"])
+
+    def test_county_tables(self):
+        self.assertFalse(titles.usable("NationalAbbeville County, South CarolinaAcadia County, "
+                                       "LouisianaAccomack County, Virginia", KEY))
 
 
 class SaysLess(unittest.TestCase):
@@ -96,6 +114,13 @@ class BuildSite(unittest.TestCase):
             self.assertTrue(titles.needs_title(d | {"link_text": text}), text)
         self.assertEqual(build_site.hub_title(d | {"link_text": "Highlights of the CARES Act"}),
                          "Highlights of the CARES Act")
+
+    def test_a_series_name_without_dates_gives_way_to_file_names(self):
+        docs = [{"agency": "NIH", "title": "Treatment Guidelines", "fname": f"Section {n}"} for n in (1, 2, 3)]
+        docs.append({"agency": "NIH", "title": "Antivirals", "fname": "Antivirals 2021"})
+        self.assertEqual([d["title"] for d in build_site.one_title_each(docs)],
+                         ["Section 1", "Section 2", "Section 3", "Antivirals"])
+        self.assertTrue(all("fname" not in d for d in docs))
 
     def test_a_shared_title_takes_its_printed_date(self):
         docs = [{"agency": "White House (Biden)", "title": "COVID-19 Press Briefing", "date": "June 8, 2021"},
