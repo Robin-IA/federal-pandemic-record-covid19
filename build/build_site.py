@@ -156,7 +156,8 @@ def file_title(d: dict, titles: dict[str, dict]) -> dict:
     """
     found = titles.get(d["key"], {})
     if found.get("status") == "found":
-        return {"title": found["title"]} | ({"date": " ".join(found["date"].split())} if found.get("date") else {})
+        return ({"title": found["title"], "fname": title_from(d["key"])}
+                | ({"date": " ".join(found["date"].split())} if found.get("date") else {}))
     title = hub_title(d)
     return {"title": title} | ({"fn": 1} if title == title_from(d["key"]) else {})
 
@@ -166,12 +167,20 @@ def one_title_each(docs: list[dict]) -> list[dict]:
 
     SBA's "Disaster Assistance Update" and the White House's "COVID-19 Press
     Briefing" title every issue alike.
+
+    A title shared three or more times with no date to tell the files apart is
+    a series name, not each one's: NIH set every chapter of its treatment
+    guidelines to "Coronavirus Disease 2019 (COVID-19) Treatment Guidelines".
+    Those take their file names, which do differ.
     """
     seen = Counter((d["agency"], d["title"]) for d in docs)
     for d in docs:
-        when = d.pop("date", None)
-        if when and seen[(d["agency"], d["title"])] > 1 and when not in d["title"]:
+        when, fname = d.pop("date", None), d.pop("fname", None)
+        shared = seen[(d["agency"], d["title"])]
+        if when and shared > 1 and when not in d["title"]:
             d["title"] = f"{d['title']}, {when}"
+        elif not when and fname and shared >= 3:
+            d["title"] = fname
     return docs
 
 
@@ -240,15 +249,28 @@ def one_per_declaration(docs: list[dict]) -> list[dict]:
     return [d for d in docs if d["type"] != "PHE declaration" or first[d["title"]] is d]
 
 
+def load_titles(path: Path) -> dict[str, dict]:
+    """titles.py's cache: the latest record for each file, except that an error
+    never replaces a result. A re-read that fails (Wayback refusing
+    connections, 12 Nov 2026, cost 566 titles that way) keeps what the earlier
+    read found."""
+    cache: dict[str, dict] = {}
+    if not path.exists():
+        return cache
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line:
+            r = json.loads(line)
+            if r["status"] != "error" or cache.get(r["key"], {}).get("status") in (None, "error"):
+                cache[r["key"]] = r
+    return cache
+
+
 def main() -> None:
     documents = [json.loads(line) for line in (ROOT / "data" / "documents.jsonl").read_text().splitlines()]
     dates = {json.loads(line)["key"]: json.loads(line)
              for line in (ROOT / "data" / "dates.jsonl").read_text().splitlines()}
 
-    cache = ROOT / "data" / "titles-cache.jsonl"
-    titles = {}
-    if cache.exists():
-        titles = {(r := json.loads(line))["key"]: r for line in cache.read_text(encoding="utf-8").splitlines() if line}
+    titles = load_titles(ROOT / "data" / "titles-cache.jsonl")
 
     docs, left_out = [], Counter()
     documents, repeats = one_per_file(documents)
