@@ -249,15 +249,28 @@ def one_per_declaration(docs: list[dict]) -> list[dict]:
     return [d for d in docs if d["type"] != "PHE declaration" or first[d["title"]] is d]
 
 
+def load_titles(path: Path) -> dict[str, dict]:
+    """titles.py's cache: the latest record for each file, except that an error
+    never replaces a result. A re-read that fails (Wayback refusing
+    connections, 12 Nov 2026, cost 566 titles that way) keeps what the earlier
+    read found."""
+    cache: dict[str, dict] = {}
+    if not path.exists():
+        return cache
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line:
+            r = json.loads(line)
+            if r["status"] != "error" or cache.get(r["key"], {}).get("status") in (None, "error"):
+                cache[r["key"]] = r
+    return cache
+
+
 def main() -> None:
     documents = [json.loads(line) for line in (ROOT / "data" / "documents.jsonl").read_text().splitlines()]
     dates = {json.loads(line)["key"]: json.loads(line)
              for line in (ROOT / "data" / "dates.jsonl").read_text().splitlines()}
 
-    cache = ROOT / "data" / "titles-cache.jsonl"
-    titles = {}
-    if cache.exists():
-        titles = {(r := json.loads(line))["key"]: r for line in cache.read_text(encoding="utf-8").splitlines() if line}
+    titles = load_titles(ROOT / "data" / "titles-cache.jsonl")
 
     docs, left_out = [], Counter()
     documents, repeats = one_per_file(documents)

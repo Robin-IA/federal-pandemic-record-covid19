@@ -23,7 +23,7 @@ unless it names only a format: GAO links every report as "Full Report (14
 pages)" or "Highlights Page", so those are read here too (--source gao-covid).
 
 Results are cached in data/titles-cache.jsonl, one line per attempt, last line
-wins, so a run can stop at any point and resume. Statuses:
+wins (except that an error never replaces a result), so a run can stop at any point and resume. Statuses:
   found     a title, with "from": "meta" or "page"
   none      the PDF was read and names itself nowhere usable
   error     the request or the parse failed; retried on the next run
@@ -209,9 +209,7 @@ def fetch(d: dict) -> bytes:
 
 
 def load_cache(path: Path = CACHE) -> dict[str, dict]:
-    if not path.exists():
-        return {}
-    return {(r := json.loads(line))["key"]: r for line in path.read_text(encoding="utf-8").splitlines() if line}
+    return build_site.load_titles(path)
 
 
 def main() -> None:

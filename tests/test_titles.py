@@ -90,6 +90,24 @@ class TitleOf(unittest.TestCase):
         self.assertEqual(titles.title_of(pdf("Consolidated-Forecasts-Hosp-2023-03-13"), KEY), {"status": "none"})
 
 
+class LoadCache(unittest.TestCase):
+    def test_an_error_never_replaces_a_title(self):
+        import json, tempfile
+        rows = [{"key": "a", "status": "found", "title": "Old"},
+                {"key": "a", "status": "error", "error": "refused"},
+                {"key": "b", "status": "error", "error": "refused"},
+                {"key": "b", "status": "found", "title": "New"},
+                {"key": "c", "status": "found", "title": "One"},
+                {"key": "c", "status": "none"}]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "cache.jsonl"
+            path.write_text("".join(json.dumps(r) + "\n" for r in rows))
+            cache = titles.load_cache(path)
+        self.assertEqual(cache["a"]["title"], "Old")
+        self.assertEqual(cache["b"]["title"], "New")
+        self.assertEqual(cache["c"]["status"], "none")
+
+
 class BuildSite(unittest.TestCase):
     DOC = {"source": "cdc-ncov", "agency": "CDC", "key": KEY, "mimetype": "application/pdf",
            "languages": [], "first_ts": "20230313000000", "timestamp": "20230313000000",
